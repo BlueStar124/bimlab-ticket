@@ -21,10 +21,9 @@
       "vitest/importMeta",
       "node"
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   },
