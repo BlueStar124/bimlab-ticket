@@ -1,11 +1,12 @@
-// Ticket rows shared by the IT dashboard, the queue and "my tickets", plus a compact list for side panels.
+// Ticket rows shared by the dashboard and the ticket list.
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { categoryById } from '@/domain/categories';
-import { personById } from '@/domain/people';
+import { areaById } from '@/domain/areas';
+import { personById, shortName } from '@/domain/people';
 import type { Ticket } from '@/domain/ticket';
-import { PRIORITY_LABEL, STATUS_LABEL, formatRelativeShort } from '@/domain/ticket';
+import { ENVIRONMENT_LABEL, PRIORITY_LABEL, STATUS_LABEL, formatDateTime, formatRelativeShort } from '@/domain/ticket';
 import { Icon } from '@/shared/ui/Icon';
-import { Avatar, PRIORITY_COLOR, STATUS_COLOR, SlaMeter } from '@/features/tickets/components/TicketBits';
+import { Avatar, PRIORITY_COLOR, STATUS_COLOR } from '@/features/tickets/components/TicketBits';
 import './ticket-table.css';
 
 function StatusText({ ticket }: { ticket: Ticket }) {
@@ -20,8 +21,8 @@ function StatusText({ ticket }: { ticket: Ticket }) {
 function PriorityPill({ ticket }: { ticket: Ticket }) {
   return (
     <span className="pill" style={{ ['--c' as string]: PRIORITY_COLOR[ticket.priority] }}>
-      <b>{ticket.priority}</b>
-      {PRIORITY_LABEL[ticket.priority]}
+      <i aria-hidden="true" />
+      {PRIORITY_LABEL[ticket.priority].title}
     </span>
   );
 }
@@ -34,14 +35,14 @@ function Assignee({ ticket }: { ticket: Ticket }) {
         <span className="assignee-empty" aria-hidden="true">
           <Icon name="userPlus" size={14} />
         </span>
-        Chưa nhận
+        Chưa ai nhận
       </span>
     );
   }
   return (
     <span className="assignee">
       <Avatar person={person} size={26} />
-      <span>{person.name.split(' ').slice(-2).join(' ')}</span>
+      <span>{shortName(person)}</span>
     </span>
   );
 }
@@ -49,74 +50,48 @@ function Assignee({ ticket }: { ticket: Ticket }) {
 interface TableProps {
   tickets: Ticket[];
   now: number;
-  showRequester: boolean;
-  emptyText: string;
+  /** Shown instead of rows when the list is empty. */
+  empty: ReactNode;
 }
 
-export function TicketTable({ tickets, now, showRequester, emptyText }: TableProps) {
+export function TicketTable({ tickets, now, empty }: TableProps) {
   return (
-    <div className="ttable" role="table" aria-label="Danh sách yêu cầu">
+    <div className="ttable" role="table" aria-label="Danh sách ticket">
       <div className="ttable-head" role="row">
-        <span role="columnheader">Yêu cầu</span>
+        <span role="columnheader">Ticket</span>
         <span role="columnheader">Ưu tiên</span>
-        <span role="columnheader">Hạn xử lý</span>
-        <span role="columnheader">Người xử lý</span>
+        <span role="columnheader">Cập nhật</span>
+        <span role="columnheader">Người làm</span>
       </div>
-      {tickets.length === 0 && (
-        <div className="empty">
-          <Icon name="inbox" size={36} />
-          <p>{emptyText}</p>
-        </div>
-      )}
-      {tickets.map((t) => (
-        <Link key={t.id} to={`/yeu-cau/${t.id}`} className="ttable-row" role="row">
-          <span className="ttable-main" role="cell">
-            <b>{t.title}</b>
-            <small>
-              <StatusText ticket={t} />
-              <span className="code">{t.code}</span>
-              <span className="ttable-who">{showRequester ? (personById(t.requesterId)?.name ?? '') : categoryById(t.categoryId).name}</span>
-            </small>
-          </span>
-          <span role="cell">
-            <PriorityPill ticket={t} />
-          </span>
-          <span role="cell">
-            <SlaMeter ticket={t} now={now} />
-          </span>
-          <span role="cell">
-            <Assignee ticket={t} />
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-export function TicketMiniList({ tickets, now, emptyText }: { tickets: Ticket[]; now: number; emptyText: string }) {
-  if (tickets.length === 0) return <p className="empty">{emptyText}</p>;
-  return (
-    <ul className="mini-list">
+      {tickets.length === 0 && empty}
       {tickets.map((t) => {
-        const cat = categoryById(t.categoryId);
+        const reporter = personById(t.reporterId);
         return (
-          <li key={t.id}>
-            <Link to={`/yeu-cau/${t.id}`} className="mini-row" title={t.code}>
-              <span className="mini-ic" aria-hidden="true">
-                <Icon name={cat.icon} size={18} />
-              </span>
-              <span className="mini-body">
-                <b>{t.title}</b>
-                <small>
-                  <StatusText ticket={t} />
-                  <span>{formatRelativeShort(t.updatedAt, now)}</span>
-                </small>
-              </span>
-              <Icon name="chevronRight" size={16} className="mini-go" />
-            </Link>
-          </li>
+          <Link key={t.id} to={`/ticket/${t.id}`} className="ttable-row" role="row">
+            <span className="ttable-main" role="cell">
+              <b>{t.title}</b>
+              <small>
+                <StatusText ticket={t} />
+                <span className="code">{t.code}</span>
+                <span>
+                  {areaById(t.areaId).name}
+                  {t.environment ? ` · ${ENVIRONMENT_LABEL[t.environment]}` : ''}
+                </span>
+                {reporter && <span className="ttable-who">báo bởi {shortName(reporter)}</span>}
+              </small>
+            </span>
+            <span role="cell">
+              <PriorityPill ticket={t} />
+            </span>
+            <span role="cell" className="ttable-time" title={formatDateTime(t.updatedAt)}>
+              {formatRelativeShort(t.updatedAt, now)}
+            </span>
+            <span role="cell">
+              <Assignee ticket={t} />
+            </span>
+          </Link>
         );
       })}
-    </ul>
+    </div>
   );
 }

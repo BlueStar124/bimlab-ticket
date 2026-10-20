@@ -163,7 +163,7 @@ export function KanbanBoard<K extends string, C extends KanbanCard<K>>({ columns
 
   return (
     <div className="ux u255" aria-label={ariaLabel}>
-      <div className="u255-bd" ref={bdRef}>
+      <div className="u255-bd" ref={bdRef} style={{ ['--cols' as string]: columns.length }}>
         {columns.map((col) => {
           const list = byColumn(col.key).filter((c) => c.id !== drag?.id);
           // Placeholder sits where the board's sort order will put the card.

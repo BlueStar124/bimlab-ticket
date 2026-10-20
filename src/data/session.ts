@@ -1,25 +1,28 @@
-// Demo session: which role the viewer is acting as. Replace with Keycloak/OIDC when a backend exists.
+// Demo session: which team member the viewer is acting as. Replace with Keycloak/OIDC when a backend exists.
 import { useSyncExternalStore } from 'react';
-import { DEMO_ACCOUNT, personById } from '@/domain/people';
-import type { Person, Role } from '@/domain/ticket';
+import { TEAM, personById } from '@/domain/people';
+import type { Person } from '@/domain/ticket';
 
-const KEY = 'bimlab-ticket:role';
+const KEY = 'bimlab-ticket:user';
 const listeners = new Set<() => void>();
 
-function readRole(): Role {
+function readUserId(): string {
   try {
-    return localStorage.getItem(KEY) === 'agent' ? 'agent' : 'employee';
+    const saved = localStorage.getItem(KEY);
+    if (saved && personById(saved)) return saved;
   } catch {
-    return 'employee';
+    // Storage blocked: use the default account.
   }
+  return TEAM[0].id;
 }
 
-let role: Role = readRole();
+let userId = readUserId();
 
-export function setRole(next: Role) {
-  role = next;
+export function setCurrentUser(id: string) {
+  if (!personById(id)) throw new Error(`Không có thành viên ${id}`);
+  userId = id;
   try {
-    localStorage.setItem(KEY, next);
+    localStorage.setItem(KEY, id);
   } catch {
     // In-memory only.
   }
@@ -32,9 +35,7 @@ export function useCurrentUser(): Person {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
-    () => role,
+    () => userId,
   );
-  const person = personById(DEMO_ACCOUNT[current]);
-  if (!person) throw new Error('Thiếu tài khoản demo');
-  return person;
+  return personById(current) ?? TEAM[0];
 }

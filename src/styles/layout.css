@@ -41,6 +41,71 @@
   height: 24px;
   object-fit: contain;
 }
+/* BIMLab mark (app/BrandMark.tsx): hairline-style floor slabs; faces take the brand box colour so
+   each slab hides the lines behind it. Hover/focus lifts the floors apart, top floor the most. */
+.brand-mark {
+  --mark-face: var(--ux-surface);
+  flex: none;
+  margin-right: -2px;
+  overflow: visible;
+  fill: none;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.brand:hover .brand-mark,
+.brand:focus-visible .brand-mark {
+  --mark-face: var(--ux-surface-2);
+}
+.brand-mark-face,
+.brand-mark-side {
+  fill: var(--mark-face);
+  stroke: var(--ux-ink-3);
+  transition: fill 0.18s ease-out, stroke 0.3s var(--ux-ease);
+}
+.brand-mark-edge,
+.brand-mark-cols {
+  stroke: var(--ux-ink-3);
+}
+.brand-mark-f3 .brand-mark-face,
+.brand-mark-f3 .brand-mark-side,
+.brand-mark-f3 .brand-mark-edge {
+  stroke: var(--ux-accent);
+}
+.brand-mark-f2,
+.brand-mark-f3,
+.brand-mark-cols {
+  transform-box: view-box;
+  transition: transform 0.55s var(--ux-spring);
+}
+/* Columns stretch from the bottom floor (y 24) as the upper floors rise. */
+.brand-mark-cols {
+  transform-origin: 16px 24px;
+}
+.brand:hover .brand-mark-f3,
+.brand:focus-visible .brand-mark-f3 {
+  transform: translateY(-4px);
+}
+.brand:hover .brand-mark-f2,
+.brand:focus-visible .brand-mark-f2 {
+  transform: translateY(-2px);
+  transition-delay: 0.04s;
+}
+.brand:hover .brand-mark-cols,
+.brand:focus-visible .brand-mark-cols {
+  transform: scaleY(1.31);
+}
+.brand:hover .brand-mark-f3 .brand-mark-face,
+.brand:focus-visible .brand-mark-f3 .brand-mark-face {
+  fill: color-mix(in srgb, var(--ux-accent) 12%, var(--mark-face));
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark-f2,
+  .brand-mark-f3,
+  .brand-mark-cols {
+    transition: none;
+  }
+}
 .brand-sub {
   padding-left: 10px;
   border-left: 1px solid var(--ux-line-2);
@@ -109,6 +174,20 @@
 .topnav-role {
   display: none;
 }
+.nav-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--ux-danger);
+  font-variant-numeric: tabular-nums;
+}
 .appbar-tools {
   display: flex;
   align-items: center;
@@ -118,32 +197,15 @@
 .appbar-role {
   margin-right: 4px;
 }
-.role-switch {
-  display: inline-grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 3px;
-  border-radius: 8px;
-  background: var(--ux-surface-2);
-}
-.role-switch button {
-  height: 32px;
+.user-switch.select {
+  width: auto;
+  min-height: 34px;
+  max-width: 200px;
   padding: 0 10px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--ux-ink-3);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.18s ease-out, color 0.18s ease-out;
+  font-weight: 500;
 }
-.role-switch button[aria-pressed='true'] {
-  background: var(--ux-surface);
-  color: var(--ux-accent);
-  box-shadow: 0 1px 2px var(--ux-shadow);
-}
-.me {
+.appbar-me {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -152,17 +214,17 @@
   border-left: 1px solid var(--ux-line);
   min-width: 0;
 }
-.me > span:last-child {
+.appbar-me > span:last-child {
   line-height: 1.3;
 }
-.me b {
+.appbar-me b {
   display: block;
   font-size: 13.5px;
   font-weight: 600;
   color: var(--ux-ink);
   white-space: nowrap;
 }
-.me small {
+.appbar-me small {
   display: block;
   font-size: 12px;
   color: var(--ux-ink-3);
@@ -217,8 +279,19 @@
   margin: 4px 0 0;
   color: var(--ux-ink-3);
 }
+/* Small line figure in a page header (shared/ui/LineFigure); decorative, dropped on narrow screens. */
+.page-figure.line-figure {
+  width: 130px;
+  margin: -18px 8px -22px 0;
+}
+@media (max-width: 760px) {
+  .page-figure.line-figure {
+    display: none;
+  }
+}
 .page-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -320,7 +393,7 @@
   }
 }
 @media (max-width: 1440px) {
-  .me > span:last-child {
+  .appbar-me > span:last-child {
     display: none;
   }
 }
@@ -351,7 +424,7 @@
   .menu-btn {
     display: grid;
   }
-  .me {
+  .appbar-me {
     display: none;
   }
   .topnav {
@@ -400,6 +473,11 @@
   }
   .page {
     padding: 20px 16px 40px;
+  }
+}
+@media (max-width: 400px) {
+  .brand-sub {
+    display: none;
   }
 }
 @media (max-width: 560px) {

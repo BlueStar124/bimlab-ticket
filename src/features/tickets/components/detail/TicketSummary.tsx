@@ -1,39 +1,29 @@
-// Ticket header: code, category, status, priority, progress steps, description and attachments.
-import { categoryById } from '@/domain/categories';
-import type { Ticket, TicketStatus } from '@/domain/ticket';
-import { PriorityTag, StatusBadge } from '@/features/tickets/components/TicketBits';
+// Ticket header: code, kind, system, status, priority, description and attachments.
+import { areaById } from '@/domain/areas';
+import type { Ticket } from '@/domain/ticket';
+import { ENVIRONMENT_LABEL } from '@/domain/ticket';
+import { KindTag, PriorityTag, StatusBadge } from '@/features/tickets/components/TicketBits';
+import { areaFigure } from '@/features/tickets/components/detail/areaFigure';
 import { Icon } from '@/shared/ui/Icon';
-
-const PROGRESS: Array<{ key: TicketStatus; label: string }> = [
-  { key: 'new', label: 'Đã gửi' },
-  { key: 'in_progress', label: 'Đang xử lý' },
-  { key: 'resolved', label: 'Đã giải quyết' },
-  { key: 'closed', label: 'Đã đóng' },
-];
-
-function progressIndex(status: TicketStatus) {
-  return status === 'waiting' ? 1 : PROGRESS.findIndex((p) => p.key === status);
-}
+import { LineFigure } from '@/shared/ui/LineFigure';
 
 export function TicketSummary({ ticket }: { ticket: Ticket }) {
-  const step = progressIndex(ticket.status);
+  const area = areaById(ticket.areaId);
+  const art = areaFigure(ticket.areaId);
   return (
-    <section className="card">
+    <section className="card ticket-summary">
+      <LineFigure figure={art.figure} label={art.label} className="ticket-figure" />
       <div className="ticket-meta">
-        <span>{ticket.code}</span>
-        <span>·</span>
-        <span>{categoryById(ticket.categoryId).name}</span>
+        <span className="code">{ticket.code}</span>
+        <KindTag kind={area.kind} />
+        <span>
+          {area.name}
+          {ticket.environment ? ` · ${ENVIRONMENT_LABEL[ticket.environment]}` : ''}
+        </span>
         <StatusBadge status={ticket.status} />
         <PriorityTag priority={ticket.priority} />
       </div>
       <h1 className="ticket-h1">{ticket.title}</h1>
-      <ol className="progress" aria-label="Tiến độ">
-        {PROGRESS.map((p, i) => (
-          <li key={p.key} className={i < step ? 'done' : i === step ? 'done cur' : undefined} aria-current={i === step ? 'step' : undefined}>
-            {i === 1 && ticket.status === 'waiting' ? 'Chờ phản hồi' : p.label}
-          </li>
-        ))}
-      </ol>
       <p className="desc">{ticket.description}</p>
       {ticket.attachments.length > 0 && (
         <div className="files" aria-label="File đính kèm">

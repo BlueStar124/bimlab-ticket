@@ -1,0 +1,14 @@
+/* Hairline figures drawn in the app palette: navy for lit strokes, neutral grays for the rest, no plate.
+   The --ux-* tokens already switch for dark mode, so the figures follow the theme toggle. */
+.line-figure {
+  --hairline-plate: transparent;
+  --hairline-hi: var(--ux-accent);
+  --hairline-edge: var(--ux-ink-3);
+  --hairline-mid: var(--ux-line-2);
+  --hairline-lo: var(--ux-line);
+  --hairline-stroke: 1;
+  width: 100%;
+  max-width: 220px;
+  /* Same box the figure draws into, reserved before its code arrives. */
+  aspect-ratio: 5 / 4;
+}

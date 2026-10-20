@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/** Current time that refreshes every `ms`, so countdowns (SLA, "x phút trước") stay current. */
+/** Current time that refreshes every `ms`, so relative times ("x phút trước") stay current. */
 export function useNow(ms = 30_000): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {

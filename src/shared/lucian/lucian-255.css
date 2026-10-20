@@ -1,10 +1,10 @@
 /* Lucian UX/UI Prompt #255 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#255 */
-/* Adapted: fluid full-page board (4 status columns, horizontal scroll on narrow screens) instead of a 340px square;
+/* Adapted: fluid full-page board (4 status columns, horizontal scroll on narrow screens) instead of a 340px square (column count from --cols);
    text and card padding scaled up for real tickets; "done" styling keyed on data-done instead of column index.
    Lift, landing, placeholder and count-pop motion values are unchanged. */
 /* BIMLab pass: radii 8–12px, flat at rest (1px line instead of soft drop shadows), no gradients/purple; motion untouched. */
 .u255{position:relative;width:100%;min-height:520px;border-radius:12px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line);color:var(--ux-ink);user-select:none;overflow-x:auto}
-.u255-bd{position:relative;display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:10px;padding:14px;min-width:1000px}
+.u255-bd{position:relative;display:grid;grid-template-columns:repeat(var(--cols,4),minmax(240px,1fr));gap:10px;padding:14px;min-width:calc(var(--cols,4) * 250px)}
 .u255-col{position:relative;padding:10px 8px;border-radius:10px;min-height:480px;background:var(--ux-surface-2);box-shadow:inset 0 0 0 1px var(--ux-line);transition:background .2s,box-shadow .2s}
 .u255-col.is-over{background:color-mix(in srgb,var(--ux-accent) 9%,var(--ux-surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ux-accent) 45%,transparent)}
 .u255-ch{display:flex;align-items:center;gap:7px;padding:2px 6px 10px;font-size:13px;font-weight:700;color:var(--ux-ink-2)}

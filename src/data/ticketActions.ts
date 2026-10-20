@@ -1,11 +1,13 @@
-// Ticket writes: create, status changes, assignment, comments, rating.
+// Ticket writes: create, status changes, assignment, priority, comments.
+// Every IT-team member may do every action; the checks here reject unknown people and invalid moves.
 import { getState, newId, setState } from '@/data/store';
-import { personById, roleOf } from '@/domain/people';
-import type { Attachment, Impact, Ticket, TicketEvent, TicketStatus, Urgency } from '@/domain/ticket';
-import { canTransition, nextTicketCode, priorityFor, withStatus } from '@/domain/ticket';
+import { areaById } from '@/domain/areas';
+import { isMember, personById } from '@/domain/people';
+import type { Attachment, Environment, Priority, Ticket, TicketEvent, TicketStatus } from '@/domain/ticket';
+import { PRIORITY_LABEL, canTransition, nextTicketCode, withStatus } from '@/domain/ticket';
 
 function event(ticketId: string, actorId: string, kind: TicketEvent['kind'], text: string, extra: Partial<TicketEvent> = {}): TicketEvent {
-  return { id: newId('e'), ticketId, at: new Date().toISOString(), actorId, kind, text, internal: false, ...extra };
+  return { id: newId('e'), ticketId, at: new Date().toISOString(), actorId, kind, text, ...extra };
 }
 
 function updateTicket(id: string, fn: (t: Ticket) => Ticket, newEvents: TicketEvent[]) {
@@ -15,22 +17,34 @@ function updateTicket(id: string, fn: (t: Ticket) => Ticket, newEvents: TicketEv
 
 function requireTicket(id: string): Ticket {
   const ticket = getState().tickets.find((t) => t.id === id);
-  if (!ticket) throw new Error(`Không tìm thấy yêu cầu ${id}`);
+  if (!ticket) throw new Error(`Không tìm thấy ticket ${id}`);
   return ticket;
+}
+
+function requireMember(personId: string) {
+  if (!isMember(personId)) throw new Error('Chỉ thành viên team IT mới thao tác được ticket');
+}
+
+function assignText(assigneeId: string | null, actorId: string): string {
+  if (!assigneeId) return 'Đã bỏ người làm';
+  if (assigneeId === actorId) return 'Đã nhận việc';
+  return `Đã giao cho ${personById(assigneeId)?.name}`;
 }
 
 export interface NewTicketInput {
   title: string;
   description: string;
-  categoryId: string;
-  impact: Impact;
-  urgency: Urgency;
-  asset: string;
-  location: string;
+  areaId: string;
+  environment: Environment | null;
+  priority: Priority;
+  assigneeId: string | null;
   attachments: Attachment[];
 }
 
-export function createTicket(input: NewTicketInput, requesterId: string): Ticket {
+export function createTicket(input: NewTicketInput, reporterId: string): Ticket {
+  requireMember(reporterId);
+  if (input.assigneeId) requireMember(input.assigneeId);
+  if (areaById(input.areaId).id !== input.areaId) throw new Error('Hạng mục không hợp lệ');
   const s = getState();
   const at = new Date();
   const now = at.toISOString();
@@ -41,74 +55,54 @@ export function createTicket(input: NewTicketInput, requesterId: string): Ticket
       s.tickets.map((t) => t.code),
       at,
     ),
-    priority: priorityFor(input.impact, input.urgency),
-    status: 'new',
-    requesterId,
-    assigneeId: null,
+    status: 'todo',
+    reporterId,
     createdAt: now,
     updatedAt: now,
-    firstResponseAt: null,
-    resolvedAt: null,
-    closedAt: null,
-    waitingSince: null,
-    pausedMs: 0,
-    rating: null,
-    ratingComment: '',
+    startedAt: null,
+    doneAt: null,
   };
-  setState({ ...s, tickets: [ticket, ...s.tickets], events: [...s.events, event(ticket.id, requesterId, 'created', 'Đã gửi yêu cầu')] });
+  const created = event(ticket.id, reporterId, 'created', 'Đã báo lỗi', { toAssigneeId: input.assigneeId });
+  setState({ ...s, tickets: [ticket, ...s.tickets], events: [...s.events, created] });
   return ticket;
 }
 
-export function changeStatus(id: string, to: TicketStatus, actorId: string, note = '') {
+export function changeStatus(id: string, to: TicketStatus, actorId: string) {
+  requireMember(actorId);
   const ticket = requireTicket(id);
-  const role = roleOf(actorId);
-  if (!canTransition(ticket.status, to, role)) {
-    throw new Error('Không thể chuyển sang trạng thái này');
-  }
+  if (!canTransition(ticket.status, to)) throw new Error('Ticket đã ở trạng thái này');
   const at = new Date().toISOString();
-  updateTicket(
-    id,
-    (t) => {
-      const next = withStatus(t, to, at);
-      const firstResponseAt = role === 'agent' ? (t.firstResponseAt ?? at) : t.firstResponseAt;
-      // Picking up an unassigned ticket assigns it to the agent who moved it.
-      const assigneeId = role === 'agent' && !t.assigneeId ? actorId : t.assigneeId;
-      return { ...next, firstResponseAt, assigneeId };
-    },
-    [event(id, actorId, 'status', note, { toStatus: to })],
-  );
+  const events = [event(id, actorId, 'status', '', { toStatus: to })];
+  // Starting work on an unassigned ticket makes the actor its assignee.
+  const takes = to === 'in_progress' && !ticket.assigneeId;
+  if (takes) events.unshift(event(id, actorId, 'assign', assignText(actorId, actorId), { toAssigneeId: actorId }));
+  updateTicket(id, (t) => ({ ...withStatus(t, to, at), assigneeId: takes ? actorId : t.assigneeId }), events);
 }
 
 export function assign(id: string, assigneeId: string | null, actorId: string) {
-  const name = personById(assigneeId)?.name;
-  const text = !assigneeId ? 'Đã bỏ phân công' : assigneeId === actorId ? 'Đã nhận xử lý' : `Đã giao cho ${name}`;
-  const at = new Date().toISOString();
-  updateTicket(id, (t) => ({ ...t, assigneeId, updatedAt: at, firstResponseAt: t.firstResponseAt ?? at }), [event(id, actorId, 'assign', text)]);
-}
-
-export function addComment(id: string, text: string, actorId: string, internal: boolean) {
+  requireMember(actorId);
+  if (assigneeId) requireMember(assigneeId);
   const ticket = requireTicket(id);
-  const role = roleOf(actorId);
+  if (ticket.assigneeId === assigneeId) return;
   const at = new Date().toISOString();
-  const events = [event(id, actorId, internal ? 'note' : 'reply', text, { internal })];
-  // A requester answering a "waiting" ticket hands it back to IT and restarts the SLA clock.
-  const resumes = role === 'employee' && ticket.status === 'waiting';
-  if (resumes) events.push(event(id, actorId, 'status', '', { toStatus: 'in_progress' }));
-  updateTicket(
-    id,
-    (t) => {
-      const base = resumes ? withStatus(t, 'in_progress', at) : { ...t, updatedAt: at };
-      const firstResponseAt = role === 'agent' && !internal ? (t.firstResponseAt ?? at) : t.firstResponseAt;
-      return { ...base, firstResponseAt };
-    },
-    events,
-  );
+  updateTicket(id, (t) => ({ ...t, assigneeId, updatedAt: at }), [event(id, actorId, 'assign', assignText(assigneeId, actorId), { toAssigneeId: assigneeId })]);
 }
 
-export function rateAndClose(id: string, rating: number, comment: string, actorId: string) {
-  changeStatus(id, 'closed', actorId);
+export function setPriority(id: string, priority: Priority, actorId: string) {
+  requireMember(actorId);
+  const ticket = requireTicket(id);
+  if (ticket.priority === priority) return;
   const at = new Date().toISOString();
-  updateTicket(id, (t) => ({ ...t, rating, ratingComment: comment, updatedAt: at }), [
-    event(id, actorId, 'rating', comment ? `${rating}/5 · ${comment}` : `${rating}/5`),
+  updateTicket(id, (t) => ({ ...t, priority, updatedAt: at }), [
+    event(id, actorId, 'priority', `Đổi ưu tiên sang “${PRIORITY_LABEL[priority].title}”`, { toPriority: priority }),
   ]);
+}
+
+export function addComment(id: string, text: string, actorId: string) {
+  requireMember(actorId);
+  requireTicket(id);
+  const body = text.trim();
+  if (!body) throw new Error('Nội dung trống');
+  const at = new Date().toISOString();
+  updateTicket(id, (t) => ({ ...t, updatedAt: at }), [event(id, actorId, 'comment', body)]);
 }

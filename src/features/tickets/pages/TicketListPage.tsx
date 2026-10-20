@@ -1,108 +1,134 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Icon } from '@/shared/ui/Icon';
-import { useNow } from '@/shared/hooks/useNow';
-import { TicketTable } from '@/features/tickets/components/TicketTable';
-import { CATEGORIES } from '@/domain/categories';
-import { personById } from '@/domain/people';
-import type { Ticket } from '@/domain/ticket';
-import { compareForQueue, compareForRequester, isOpen, slaState } from '@/domain/ticket';
 import { useCurrentUser } from '@/data/session';
 import { useStore } from '@/data/store';
+import type { TicketKind } from '@/domain/areas';
+import { KIND_LABEL, areaById, areasOf } from '@/domain/areas';
+import { personById } from '@/domain/people';
+import type { Priority, Ticket } from '@/domain/ticket';
+import { PRIORITY_LABEL, PRIORITY_ORDER, compareForQueue, isOpen } from '@/domain/ticket';
+import { TicketTable } from '@/features/tickets/components/TicketTable';
+import { useNow } from '@/shared/hooks/useNow';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { Icon } from '@/shared/ui/Icon';
 
-type Filter = 'open' | 'waiting' | 'done' | 'all' | 'unassigned' | 'mine' | 'breached';
+type Filter = 'open' | 'unassigned' | 'mine' | 'reported' | 'done' | 'all';
 
-function TicketListPage({ scope }: { scope: 'mine' | 'all' }) {
+const CHIPS: Array<[Filter, string]> = [
+  ['open', 'Đang mở'],
+  ['unassigned', 'Chưa ai nhận'],
+  ['mine', 'Tôi đang làm'],
+  ['reported', 'Tôi đã báo'],
+  ['done', 'Đã xong'],
+  ['all', 'Tất cả'],
+];
+
+function searchText(t: Ticket): string {
+  return [t.code, t.title, t.description, areaById(t.areaId).name, personById(t.reporterId)?.name, personById(t.assigneeId)?.name].join(' ').toLowerCase();
+}
+
+export function TicketListPage() {
   const me = useCurrentUser();
   const all = useStore((s) => s.tickets);
-  const now = useNow();
-  const isQueue = scope === 'all';
+  const now = useNow(60_000);
   const [filter, setFilter] = useState<Filter>('open');
   const [query, setQuery] = useState('');
-  const [cat, setCat] = useState('');
+  // Either "" (all), a kind ("kind:bug") or a single area id.
+  const [area, setArea] = useState('');
+  const [priority, setPriority] = useState<Priority | ''>('');
 
-  const base = useMemo(() => (isQueue ? all : all.filter((t) => t.requesterId === me.id)), [all, isQueue, me.id]);
+  const tests: Record<Filter, (t: Ticket) => boolean> = useMemo(
+    () => ({
+      open: (t) => isOpen(t.status),
+      unassigned: (t) => isOpen(t.status) && !t.assigneeId,
+      mine: (t) => isOpen(t.status) && t.assigneeId === me.id,
+      reported: (t) => t.reporterId === me.id,
+      done: (t) => !isOpen(t.status),
+      all: () => true,
+    }),
+    [me.id],
+  );
 
-  const tests: Record<Filter, (t: Ticket) => boolean> = {
-    open: (t) => isOpen(t.status),
-    waiting: (t) => t.status === 'waiting' || (!isQueue && t.status === 'resolved'),
-    done: (t) => !isOpen(t.status),
-    all: () => true,
-    unassigned: (t) => isOpen(t.status) && !t.assigneeId,
-    mine: (t) => isOpen(t.status) && t.assigneeId === me.id,
-    breached: (t) => isOpen(t.status) && slaState(t, now).breached,
-  };
-  const chips: Array<[Filter, string]> = isQueue
-    ? [
-        ['open', 'Đang mở'],
-        ['unassigned', 'Chưa phân công'],
-        ['mine', 'Tôi xử lý'],
-        ['breached', 'Quá hạn SLA'],
-        ['waiting', 'Chờ người dùng'],
-        ['done', 'Đã xong'],
-        ['all', 'Tất cả'],
-      ]
-    : [
-        ['open', 'Đang xử lý'],
-        ['waiting', 'Cần bạn phản hồi'],
-        ['done', 'Đã xong'],
-        ['all', 'Tất cả'],
-      ];
+  function clearFilters() {
+    setQuery('');
+    setArea('');
+    setPriority('');
+    setFilter('all');
+  }
 
   const q = query.trim().toLowerCase();
-  const shown = base
-    .filter(tests[filter])
-    .filter((t) => !cat || t.categoryId === cat)
-    .filter((t) => !q || `${t.code} ${t.title} ${t.description} ${personById(t.requesterId)?.name ?? ''}`.toLowerCase().includes(q))
-    .sort((a, b) => (isQueue ? compareForQueue(a, b, now) : compareForRequester(a, b)));
+  const matchesArea = (t: Ticket) => !area || (area.startsWith('kind:') ? areaById(t.areaId).kind === area.slice(5) : t.areaId === area);
+  const narrowed = all.filter(matchesArea).filter((t) => !priority || t.priority === priority).filter((t) => !q || searchText(t).includes(q));
+  const shown = narrowed.filter(tests[filter]).sort(compareForQueue);
 
   return (
     <main className="page">
       <div className="page-head">
         <div>
-          <h1>{isQueue ? 'Hàng đợi yêu cầu' : 'Yêu cầu của tôi'}</h1>
-          <p>{isQueue ? 'Sắp xếp theo mức ưu tiên rồi đến hạn SLA gần nhất.' : 'Theo dõi tiến độ và trao đổi với Phòng CNTT.'}</p>
+          <h1>Danh sách ticket</h1>
+          <p>Việc đang mở xếp theo ưu tiên, cùng mức thì việc chờ lâu nhất lên trước.</p>
         </div>
-        {!isQueue && (
-          <Link to="/gui-yeu-cau" className="btn btn-primary">
-            <Icon name="plus" size={18} /> Gửi yêu cầu mới
-          </Link>
-        )}
+        <Link to="/bao-loi" className="btn btn-primary">
+          <Icon name="plus" size={18} /> Báo lỗi
+        </Link>
       </div>
 
       <div className="toolbar">
         <div className="search">
           <Icon name="search" size={18} />
-          <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm theo mã, tiêu đề, người gửi…" aria-label="Tìm yêu cầu" />
+          <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm theo mã, tiêu đề, hệ thống, người…" aria-label="Tìm ticket" />
         </div>
-        <select className="select" style={{ width: 220 }} value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Lọc theo nhóm">
-          <option value="">Tất cả nhóm</option>
-          {CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
+        <select className="select toolbar-select" value={area} onChange={(e) => setArea(e.target.value)} aria-label="Lọc theo hệ thống / hạng mục">
+          <option value="">Tất cả hệ thống, hạ tầng</option>
+          {(Object.keys(KIND_LABEL) as TicketKind[]).map((k) => (
+            <optgroup key={k} label={KIND_LABEL[k].title}>
+              <option value={`kind:${k}`}>Tất cả {KIND_LABEL[k].title.toLowerCase()}</option>
+              {areasOf(k).map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <select className="select toolbar-select" value={priority} onChange={(e) => setPriority(e.target.value as Priority | '')} aria-label="Lọc theo ưu tiên">
+          <option value="">Mọi mức ưu tiên</option>
+          {PRIORITY_ORDER.map((p) => (
+            <option key={p} value={p}>
+              {PRIORITY_LABEL[p].title}
             </option>
           ))}
         </select>
       </div>
       <div className="chips" role="group" aria-label="Lọc theo trạng thái" style={{ marginBottom: 16 }}>
-        {chips.map(([key, label]) => (
+        {CHIPS.map(([key, label]) => (
           <button key={key} type="button" className="chip" aria-pressed={filter === key} onClick={() => setFilter(key)}>
-            {label} <b>{base.filter(tests[key]).length}</b>
+            {label} <b>{narrowed.filter(tests[key]).length}</b>
           </button>
         ))}
       </div>
 
-      <section className="card card-flush" aria-label="Danh sách yêu cầu">
-        <TicketTable tickets={shown} now={now} showRequester={isQueue} emptyText="Không có yêu cầu nào phù hợp bộ lọc." />
+      <section className="card card-flush" aria-label="Danh sách ticket">
+        <TicketTable
+          tickets={shown}
+          now={now}
+          empty={
+            all.length === 0 ? (
+              <EmptyState figure="basket" figureLabel="Giỏ trống" title="Chưa có ticket nào" text="Gặp lỗi phần mềm hay sự cố hạ tầng thì báo để cả team cùng thấy.">
+                <Link to="/bao-loi" className="btn btn-primary btn-sm">
+                  <Icon name="plus" size={16} /> Báo lỗi
+                </Link>
+              </EmptyState>
+            ) : (
+              <EmptyState figure="loupe" figureLabel="Kính lúp trên tờ giấy trống" title="Không có ticket nào phù hợp" text="Thử đổi từ khóa, bỏ bớt bộ lọc hoặc chọn trạng thái khác.">
+                <button type="button" className="btn btn-secondary btn-sm" onClick={clearFilters}>
+                  Xóa bộ lọc
+                </button>
+              </EmptyState>
+            )
+          }
+        />
       </section>
     </main>
   );
-}
-
-export function MyTicketsPage() {
-  return <TicketListPage scope="mine" />;
-}
-
-export function QueuePage() {
-  return <TicketListPage scope="all" />;
 }
