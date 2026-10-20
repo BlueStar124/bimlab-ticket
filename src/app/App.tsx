@@ -1,22 +1,25 @@
 // App shell: top bar, routed page, footer and the global toast host.
 import { useEffect } from 'react';
 import { AppBar } from '@/app/AppBar';
-import { AppRoutes, preloadRolePages } from '@/app/routes';
+import { AppRoutes, preloadPages } from '@/app/routes';
 import { useCurrentUser } from '@/data/session';
 import { resetDemoData } from '@/data/store';
 import { Toaster, toast } from '@/shared/lucian/Toaster';
+import { CelebrationHost } from '@/shared/motion/Celebration';
+import { preloadMotionWhenIdle } from '@/shared/motion/motion';
 
 export function App() {
   const me = useCurrentUser();
-  useEffect(() => preloadRolePages(me.role), [me.role]);
+  useEffect(() => preloadPages(), []);
+  useEffect(() => preloadMotionWhenIdle(), []);
 
   return (
     <div className="shell">
       <AppBar me={me} />
       <div className="main">
-        <AppRoutes role={me.role} />
+        <AppRoutes />
         <footer className="foot">
-          <span>© 2026 BIMLab · Phòng CNTT · Sự cố P1 khẩn cấp: gửi yêu cầu rồi gọi trực tiếp Phòng CNTT</span>
+          <span>© 2026 BIMLab · Team IT · Sự cố khẩn cấp trên production: tạo ticket rồi báo trực tiếp trưởng nhóm</span>
           <button
             type="button"
             onClick={() => {
@@ -29,6 +32,7 @@ export function App() {
         </footer>
       </div>
       <Toaster />
+      <CelebrationHost />
     </div>
   );
 }

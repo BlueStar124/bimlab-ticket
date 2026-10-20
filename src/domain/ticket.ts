@@ -1,18 +1,14 @@
-// Business rules for IT tickets: priority matrix, SLA, status workflow.
+// Business rules for IT-team tickets: priority, status workflow, ordering, formatting.
 // Pure functions only — no React, no storage — so they can be tested and moved to a backend later.
 
-export type Role = 'employee' | 'agent';
-export type TicketStatus = 'new' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
-export type Priority = 'P1' | 'P2' | 'P3' | 'P4';
-export type Impact = 'individual' | 'team' | 'company';
-export type Urgency = 'low' | 'medium' | 'high';
+export type TicketStatus = 'todo' | 'in_progress' | 'done';
+export type Priority = 'urgent' | 'high' | 'medium' | 'low';
+export type Environment = 'production' | 'test' | 'local';
 
 export interface Person {
   id: string;
   name: string;
   title: string;
-  department: string;
-  role: Role;
 }
 
 export interface Attachment {
@@ -25,29 +21,22 @@ export interface Ticket {
   code: string;
   title: string;
   description: string;
-  categoryId: string;
-  impact: Impact;
-  urgency: Urgency;
+  /** System or infrastructure area; the ticket kind (bug / infra) follows from it. */
+  areaId: string;
+  /** Where the problem happens; null when unknown or not applicable. */
+  environment: Environment | null;
   priority: Priority;
   status: TicketStatus;
-  requesterId: string;
+  reporterId: string;
   assigneeId: string | null;
-  asset: string;
-  location: string;
   attachments: Attachment[];
   createdAt: string;
   updatedAt: string;
-  firstResponseAt: string | null;
-  resolvedAt: string | null;
-  closedAt: string | null;
-  /** Set while the ticket waits for the requester; SLA clock is paused during that time. */
-  waitingSince: string | null;
-  pausedMs: number;
-  rating: number | null;
-  ratingComment: string;
+  startedAt: string | null;
+  doneAt: string | null;
 }
 
-export type TicketEventKind = 'created' | 'status' | 'assign' | 'reply' | 'note' | 'rating';
+export type TicketEventKind = 'created' | 'status' | 'assign' | 'priority' | 'comment';
 
 export interface TicketEvent {
   id: string;
@@ -56,143 +45,52 @@ export interface TicketEvent {
   actorId: string;
   kind: TicketEventKind;
   text: string;
-  /** Internal notes are visible to the IT team only. */
-  internal: boolean;
   toStatus?: TicketStatus;
+  /** Set on "assign" events, and on "created" when the reporter assigned someone right away. */
+  toAssigneeId?: string | null;
+  toPriority?: Priority;
 }
 
 export const STATUS_LABEL: Record<TicketStatus, string> = {
-  new: 'Mới',
-  in_progress: 'Đang xử lý',
-  waiting: 'Chờ phản hồi',
-  resolved: 'Đã giải quyết',
-  closed: 'Đã đóng',
+  todo: 'Mới',
+  in_progress: 'Đang làm',
+  done: 'Xong',
 };
 
-export const STATUS_ORDER: TicketStatus[] = ['new', 'in_progress', 'waiting', 'resolved', 'closed'];
+export const STATUS_ORDER: TicketStatus[] = ['todo', 'in_progress', 'done'];
 
-export const PRIORITY_LABEL: Record<Priority, string> = {
-  P1: 'Khẩn cấp',
-  P2: 'Cao',
-  P3: 'Trung bình',
-  P4: 'Thấp',
+export const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low'];
+
+export const PRIORITY_LABEL: Record<Priority, { title: string; hint: string }> = {
+  urgent: { title: 'Khẩn cấp', hint: 'Production dừng, mất hoặc sai dữ liệu' },
+  high: { title: 'Cao', hint: 'Chặn công việc, chưa có cách tạm' },
+  medium: { title: 'Trung bình', hint: 'Có cách làm tạm' },
+  low: { title: 'Thấp', hint: 'Lỗi nhỏ, giao diện, cải thiện' },
 };
 
-export const IMPACT_LABEL: Record<Impact, { title: string; hint: string }> = {
-  individual: { title: 'Chỉ mình tôi', hint: 'Một người hoặc một máy' },
-  team: { title: 'Nhóm / dự án', hint: 'Một phòng ban hoặc một dự án' },
-  company: { title: 'Toàn công ty', hint: 'Nhiều phòng ban cùng bị' },
+export const ENVIRONMENT_LABEL: Record<Environment, string> = {
+  production: 'Production',
+  test: 'Test',
+  local: 'Local',
 };
 
-export const URGENCY_LABEL: Record<Urgency, { title: string; hint: string }> = {
-  low: { title: 'Có thể chờ', hint: 'Vẫn làm việc bình thường' },
-  medium: { title: 'Ảnh hưởng công việc', hint: 'Làm chậm, có cách tạm thời' },
-  high: { title: 'Ngừng làm việc', hint: 'Không thể tiếp tục công việc' },
-};
-
-const PRIORITY_MATRIX: Record<Impact, Record<Urgency, Priority>> = {
-  individual: { low: 'P4', medium: 'P3', high: 'P2' },
-  team: { low: 'P3', medium: 'P2', high: 'P1' },
-  company: { low: 'P2', medium: 'P1', high: 'P1' },
-};
-
-/** ITIL-style priority = impact × urgency. */
-export function priorityFor(impact: Impact, urgency: Urgency): Priority {
-  return PRIORITY_MATRIX[impact][urgency];
+/** The team is small and works without roles: any status can move to any other. */
+export function canTransition(from: TicketStatus, to: TicketStatus): boolean {
+  return from !== to;
 }
 
-export const SLA_TARGETS: Record<Priority, { responseMinutes: number; resolveHours: number }> = {
-  P1: { responseMinutes: 15, resolveHours: 4 },
-  P2: { responseMinutes: 30, resolveHours: 8 },
-  P3: { responseMinutes: 120, resolveHours: 24 },
-  P4: { responseMinutes: 240, resolveHours: 72 },
-};
-
-const HOUR = 3_600_000;
-const MINUTE = 60_000;
-
-export interface SlaState {
-  dueAt: number;
-  remainingMs: number;
-  /** Share of the resolve budget already used, 0..1+ (above 1 means breached). */
-  used: number;
-  breached: boolean;
-  paused: boolean;
-  done: boolean;
+export function nextStatuses(from: TicketStatus): TicketStatus[] {
+  return STATUS_ORDER.filter((to) => canTransition(from, to));
 }
 
-function pausedSoFar(ticket: Ticket, now: number): number {
-  const live = ticket.waitingSince ? Math.max(0, now - Date.parse(ticket.waitingSince)) : 0;
-  return ticket.pausedMs + live;
-}
-
-export function slaState(ticket: Ticket, now: number): SlaState {
-  const budget = SLA_TARGETS[ticket.priority].resolveHours * HOUR;
-  const start = Date.parse(ticket.createdAt);
-  const stoppedAt = ticket.resolvedAt ? Date.parse(ticket.resolvedAt) : now;
-  const elapsed = stoppedAt - start - pausedSoFar(ticket, stoppedAt);
-  const dueAt = start + budget + pausedSoFar(ticket, now);
-  return {
-    dueAt,
-    remainingMs: budget - elapsed,
-    used: elapsed / budget,
-    breached: elapsed > budget,
-    paused: ticket.status === 'waiting',
-    done: ticket.resolvedAt !== null,
-  };
-}
-
-export function responseBreached(ticket: Ticket, now: number): boolean {
-  const limit = SLA_TARGETS[ticket.priority].responseMinutes * MINUTE;
-  const respondedAt = ticket.firstResponseAt ? Date.parse(ticket.firstResponseAt) : now;
-  return respondedAt - Date.parse(ticket.createdAt) > limit;
-}
-
-const AGENT_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  new: ['in_progress', 'waiting', 'resolved'],
-  in_progress: ['waiting', 'resolved'],
-  waiting: ['in_progress', 'resolved'],
-  resolved: ['in_progress', 'closed'],
-  closed: [],
-};
-
-const EMPLOYEE_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  new: [],
-  in_progress: [],
-  waiting: [],
-  // Requester confirms the fix (close) or reopens it.
-  resolved: ['closed', 'in_progress'],
-  closed: [],
-};
-
-export function allowedTransitions(from: TicketStatus, role: Role): TicketStatus[] {
-  return role === 'agent' ? AGENT_TRANSITIONS[from] : EMPLOYEE_TRANSITIONS[from];
-}
-
-export function canTransition(from: TicketStatus, to: TicketStatus, role: Role): boolean {
-  return allowedTransitions(from, role).includes(to);
-}
-
-/** Returns the ticket with timestamps and SLA pause bookkeeping updated for the new status. */
+/** Returns the ticket with work timestamps updated for the new status. */
 export function withStatus(ticket: Ticket, to: TicketStatus, at: string): Ticket {
-  const now = Date.parse(at);
-  let pausedMs = ticket.pausedMs;
-  let waitingSince = ticket.waitingSince;
-  if (waitingSince && to !== 'waiting') {
-    pausedMs += Math.max(0, now - Date.parse(waitingSince));
-    waitingSince = null;
-  }
-  if (to === 'waiting' && !waitingSince) waitingSince = at;
-
   return {
     ...ticket,
     status: to,
-    pausedMs,
-    waitingSince,
     updatedAt: at,
-    resolvedAt: to === 'resolved' || to === 'closed' ? (ticket.resolvedAt ?? at) : null,
-    closedAt: to === 'closed' ? at : null,
-    rating: to === 'in_progress' ? null : ticket.rating,
+    startedAt: to === 'todo' ? null : (ticket.startedAt ?? at),
+    doneAt: to === 'done' ? at : null,
   };
 }
 
@@ -206,8 +104,23 @@ export function nextTicketCode(existing: string[], at: Date): string {
 }
 
 export function isOpen(status: TicketStatus): boolean {
-  return status !== 'resolved' && status !== 'closed';
+  return status !== 'done';
 }
+
+const PRIORITY_RANK: Record<Priority, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+
+/** Work order: open tickets first, by priority then the longest-waiting; finished ones by latest completion. */
+export function compareForQueue(a: Ticket, b: Ticket): number {
+  const openDiff = Number(isOpen(b.status)) - Number(isOpen(a.status));
+  if (openDiff) return openDiff;
+  if (isOpen(a.status)) {
+    return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || a.createdAt.localeCompare(b.createdAt);
+  }
+  return (b.doneAt ?? b.updatedAt).localeCompare(a.doneAt ?? a.updatedAt);
+}
+
+const HOUR = 3_600_000;
+const MINUTE = 60_000;
 
 export function formatDuration(ms: number): string {
   const abs = Math.abs(ms);
@@ -225,30 +138,6 @@ export function formatRelative(iso: string, now: number): string {
   return `${formatDuration(diff)} trước`;
 }
 
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
-
-const PRIORITY_RANK: Record<Priority, number> = { P1: 0, P2: 1, P3: 2, P4: 3 };
-
-/** Queue order: open tickets first, by priority then nearest SLA deadline; finished ones by latest update. */
-export function compareForQueue(a: Ticket, b: Ticket, now: number): number {
-  const openDiff = Number(isOpen(b.status)) - Number(isOpen(a.status));
-  if (openDiff) return openDiff;
-  if (isOpen(a.status)) {
-    const p = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-    if (p) return p;
-    return slaState(a, now).dueAt - slaState(b, now).dueAt;
-  }
-  return b.updatedAt.localeCompare(a.updatedAt);
-}
-
 /** Short relative time with the largest unit only, e.g. "4 giờ trước" — for compact lists. */
 export function formatRelativeShort(iso: string, now: number): string {
   const diff = Math.max(0, now - Date.parse(iso));
@@ -258,9 +147,12 @@ export function formatRelativeShort(iso: string, now: number): string {
   return `${Math.floor(diff / (24 * HOUR))} ngày trước`;
 }
 
-const REQUESTER_ORDER: Record<TicketStatus, number> = { new: 0, in_progress: 1, waiting: 2, resolved: 3, closed: 4 };
-
-/** Requester's own list: new first, then in progress, waiting, resolved, closed; latest update first within a status. */
-export function compareForRequester(a: Ticket, b: Ticket): number {
-  return REQUESTER_ORDER[a.status] - REQUESTER_ORDER[b.status] || b.updatedAt.localeCompare(a.updatedAt);
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }

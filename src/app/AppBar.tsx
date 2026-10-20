@@ -1,10 +1,14 @@
-// Top navigation: brand, role-based menu, demo role switch, notifications, theme, account.
+// Top navigation: brand, menu, demo account switch, notifications, theme, account.
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { BrandMark } from '@/app/BrandMark';
 import { preloadRoute } from '@/app/routes';
 import { markRead } from '@/data/notifications';
-import { setRole } from '@/data/session';
-import type { Person, Role } from '@/domain/ticket';
+import { setCurrentUser } from '@/data/session';
+import { useStore } from '@/data/store';
+import { unreadCount } from '@/domain/chat';
+import { TEAM } from '@/domain/people';
+import type { Person } from '@/domain/ticket';
 import { useBellItems } from '@/features/notifications/useBellItems';
 import { Avatar } from '@/features/tickets/components/TicketBits';
 import { NotificationBell } from '@/shared/lucian/NotificationBell';
@@ -12,79 +16,77 @@ import { ThemeToggle } from '@/shared/lucian/ThemeToggle';
 import { toast } from '@/shared/lucian/Toaster';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 
-const NAV: Record<Role, Array<{ to: string; label: string; icon: IconName; end?: boolean }>> = {
-  employee: [
-    { to: '/', label: 'Trang chủ', icon: 'home', end: true },
-    { to: '/gui-yeu-cau', label: 'Gửi yêu cầu', icon: 'plus' },
-    { to: '/yeu-cau', label: 'Yêu cầu của tôi', icon: 'list' },
-    { to: '/huong-dan', label: 'Tự xử lý', icon: 'book' },
-  ],
-  agent: [
-    { to: '/it', label: 'Tổng quan', icon: 'chart', end: true },
-    { to: '/it/hang-doi', label: 'Hàng đợi', icon: 'list' },
-    { to: '/it/kanban', label: 'Bảng Kanban', icon: 'board' },
-    { to: '/huong-dan', label: 'Kho hướng dẫn', icon: 'book' },
-  ],
-};
+const NAV: Array<{ to: string; label: string; icon: IconName; end?: boolean }> = [
+  { to: '/', label: 'Tổng quan', icon: 'chart', end: true },
+  { to: '/ticket', label: 'Danh sách', icon: 'list' },
+  { to: '/kanban', label: 'Kanban', icon: 'board' },
+  { to: '/tin-nhan', label: 'Tin nhắn', icon: 'chat' },
+  { to: '/bao-loi', label: 'Báo lỗi', icon: 'plus' },
+];
 
-function RoleSwitch({ role, onSwitch }: { role: Role; onSwitch: (role: Role) => void }) {
+function UserSwitch({ me, onSwitch }: { me: Person; onSwitch: (id: string) => void }) {
   return (
-    <div className="role-switch" role="group" aria-label="Vai trò demo">
-      <button type="button" aria-pressed={role === 'employee'} onClick={() => onSwitch('employee')}>
-        Nhân viên
-      </button>
-      <button type="button" aria-pressed={role === 'agent'} onClick={() => onSwitch('agent')}>
-        Phòng CNTT
-      </button>
-    </div>
+    <select className="select user-switch" value={me.id} onChange={(e) => onSwitch(e.target.value)} aria-label="Đăng nhập demo với tư cách">
+      {TEAM.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.name}
+        </option>
+      ))}
+    </select>
   );
 }
 
 export function AppBar({ me }: { me: Person }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { items, ticketOf } = useBellItems(me.id);
+  const { items, hrefOf } = useBellItems(me.id);
+  const unreadChat = useStore((s) => unreadCount(s.messages, me.id, s.chatReadAt[me.id]));
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
-  function switchRole(role: Role) {
-    if (role === me.role) return;
-    setRole(role);
-    navigate(role === 'agent' ? '/it' : '/');
-    toast({ kind: 'info', title: role === 'agent' ? 'Đang xem với vai trò Phòng CNTT' : 'Đang xem với vai trò Nhân viên', detail: 'Chế độ demo · chưa kết nối đăng nhập' });
+  function switchUser(id: string) {
+    if (id === me.id) return;
+    setCurrentUser(id);
+    toast({ kind: 'info', title: 'Đã đổi người dùng demo', detail: 'Chưa kết nối đăng nhập thật' });
   }
 
   return (
     <header className="appbar">
       <div className="appbar-in">
-        <Link to={me.role === 'agent' ? '/it' : '/'} className="brand" aria-label="BIMLab Ticket — trang chủ">
+        <Link to="/" className="brand" aria-label="BIMLab Ticket — tổng quan">
+          <BrandMark />
           <img src="/bimlab-logo.png" alt="BIMLab" width={75} height={24} decoding="async" />
-          <span className="brand-sub">Hỗ trợ CNTT</span>
+          <span className="brand-sub">Ticket team IT</span>
         </Link>
 
         <nav className={`topnav${menuOpen ? ' is-open' : ''}`} id="main-nav" aria-label="Điều hướng chính">
-          {NAV[me.role].map((n) => (
+          {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} onPointerEnter={() => preloadRoute(n.to)} onFocus={() => preloadRoute(n.to)}>
               <Icon name={n.icon} size={18} />
               {n.label}
+              {n.to === '/tin-nhan' && unreadChat > 0 && (
+                <span className="nav-badge" aria-label={`${unreadChat} tin chưa đọc`}>
+                  {unreadChat > 99 ? '99+' : unreadChat}
+                </span>
+              )}
             </NavLink>
           ))}
           <div className="topnav-role">
-            <span>Vai trò demo</span>
-            <RoleSwitch role={me.role} onSwitch={switchRole} />
+            <span>Người dùng demo</span>
+            <UserSwitch me={me} onSwitch={switchUser} />
           </div>
         </nav>
 
         <div className="appbar-tools">
           <div className="appbar-role">
-            <RoleSwitch role={me.role} onSwitch={switchRole} />
+            <UserSwitch me={me} onSwitch={switchUser} />
           </div>
           <NotificationBell
             items={items}
             onOpenItem={(id) => {
               markRead(me.id, [id]);
-              const ticketId = ticketOf.get(id);
-              if (ticketId) navigate(`/yeu-cau/${ticketId}`);
+              const href = hrefOf.get(id);
+              if (href) navigate(href);
             }}
             onMarkAllRead={() =>
               markRead(
@@ -94,11 +96,11 @@ export function AppBar({ me }: { me: Person }) {
             }
           />
           <ThemeToggle />
-          <span className="me" title={`${me.name} · ${me.title} · ${me.department}`}>
+          <span className="appbar-me" title={`${me.name} · ${me.title}`}>
             <Avatar person={me} size={36} />
             <span>
               <b>{me.name}</b>
-              <small>{me.department}</small>
+              <small>{me.title}</small>
             </span>
           </span>
           <button

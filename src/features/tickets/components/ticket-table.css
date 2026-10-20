@@ -1,6 +1,6 @@
 /* Ticket table */
 .ttable {
-  --cols: minmax(0, 1fr) 132px 168px 148px;
+  --cols: minmax(0, 1fr) 120px 120px 160px;
 }
 .ttable-head,
 .ttable-row {
@@ -40,8 +40,7 @@
 .ttable-main {
   min-width: 0;
 }
-.ttable-main b,
-.mini-body b {
+.ttable-main b {
   display: block;
   color: var(--ux-ink);
   font-weight: 600;
@@ -50,8 +49,7 @@
   text-overflow: ellipsis;
   transition: color 0.15s;
 }
-.ttable-main small,
-.mini-body small {
+.ttable-main small {
   display: flex;
   align-items: center;
   gap: 0;
@@ -61,8 +59,7 @@
   white-space: nowrap;
   overflow: hidden;
 }
-.ttable-main small > * + *::before,
-.mini-body small > * + *::before {
+.ttable-main small > * + *::before {
   content: '·';
   margin: 0 6px;
   color: var(--ux-line-2);
@@ -71,68 +68,14 @@
 .ttable-main small > .ttable-who {
   overflow: hidden;
   text-overflow: ellipsis;
-}.code {
+}
+.code {
   font-variant-numeric: tabular-nums;
 }
-
-/* Compact list for side panels */
-.mini-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.mini-list li + li {
-  border-top: 1px solid var(--ux-line);
-}
-.mini-row {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 16px;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 16px;
-  text-decoration: none;
-  color: inherit;
-  transition: background-color 0.15s;
-}
-.mini-row:hover {
-  background: var(--ux-surface-2);
-}
-.mini-row:hover .mini-body b {
-  color: var(--ux-accent);
-}
-.mini-ic {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: var(--ux-surface-2);
+.ttable-time {
+  font-size: 13px;
   color: var(--ux-ink-3);
-}
-.mini-body {
-  min-width: 0;
-}
-.mini-body b {
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.4;
-}
-.mini-go {
-  color: var(--ux-ink-3);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.18s ease-out, transform 0.3s var(--ux-spring);
-}
-.mini-row:hover .mini-go,
-.mini-row:focus-visible .mini-go {
-  opacity: 1;
-  transform: none;
-}
-
-.card-flush .mini-list {
-  border-top: 1px solid var(--ux-line);
+  white-space: nowrap;
 }
 
 @media (max-width: 760px) {
@@ -141,7 +84,7 @@
   }
   .ttable-row {
     grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: 'main main' 'prio sla';
+    grid-template-areas: 'main main' 'prio time';
     row-gap: 8px;
     column-gap: 12px;
   }
@@ -152,7 +95,7 @@
     grid-area: prio;
   }
   .ttable-row > :nth-child(3) {
-    grid-area: sla;
+    grid-area: time;
   }
   .ttable-row > :nth-child(4) {
     display: none;

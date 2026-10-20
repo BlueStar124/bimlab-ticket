@@ -1,0 +1,51 @@
+/* Celebration overlay: centred in the viewport, never blocks the page underneath. */
+.celebration {
+  position: fixed;
+  left: 50%;
+  top: 38%;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: celebration-in 0.25s var(--ux-ease);
+  transition: opacity 0.25s var(--ux-ease), transform 0.25s var(--ux-ease);
+}
+.celebration.is-leaving {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+}
+@keyframes celebration-in {
+  from {
+    opacity: 0;
+  }
+}
+.celebration-check {
+  padding: 14px 22px 16px;
+  border-radius: 16px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1px var(--ux-line), 0 24px 48px -24px var(--ux-shadow-strong);
+}
+.celebration-check .celebration-art {
+  width: 96px;
+  height: 96px;
+}
+.celebration-confetti .celebration-art {
+  width: min(360px, 90vw);
+  height: min(360px, 90vw);
+}
+.celebration-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ux-ink);
+  white-space: nowrap;
+}
+.celebration-confetti .celebration-label {
+  margin-top: -40px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1px var(--ux-line);
+}

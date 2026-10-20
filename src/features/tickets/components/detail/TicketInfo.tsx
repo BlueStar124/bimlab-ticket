@@ -1,81 +1,84 @@
-// Side card with requester, assignee (editable by IT), SLA, impact and asset details.
-import { assign } from '@/data/ticketActions';
-import { AGENTS, personById } from '@/domain/people';
-import type { Ticket } from '@/domain/ticket';
-import { IMPACT_LABEL, URGENCY_LABEL, formatDateTime } from '@/domain/ticket';
-import { Avatar, SlaMeter } from '@/features/tickets/components/TicketBits';
+// Side card: reporter, assignee and priority (editable by anyone in the team), work timestamps.
+import { assign, setPriority } from '@/data/ticketActions';
+import { TEAM, personById } from '@/domain/people';
+import type { Priority, Ticket } from '@/domain/ticket';
+import { PRIORITY_LABEL, PRIORITY_ORDER, formatDateTime, formatDuration } from '@/domain/ticket';
+import { Avatar } from '@/features/tickets/components/TicketBits';
 import { toast } from '@/shared/lucian/Toaster';
 
-export function TicketInfo({ ticket, now, actorId, isAgent }: { ticket: Ticket; now: number; actorId: string; isAgent: boolean }) {
-  const requester = personById(ticket.requesterId);
-  const assignee = personById(ticket.assigneeId);
+export function TicketInfo({ ticket, now, actorId }: { ticket: Ticket; now: number; actorId: string }) {
+  const reporter = personById(ticket.reporterId);
+  const openFor = (ticket.doneAt ? Date.parse(ticket.doneAt) : now) - Date.parse(ticket.createdAt);
   return (
     <section className="card" aria-labelledby="info-title">
       <div className="card-head">
         <h2 id="info-title">Thông tin</h2>
       </div>
       <dl className="props">
-        <dt>Người gửi</dt>
+        <dt>Người làm</dt>
+        <dd>
+          <select
+            className="select"
+            value={ticket.assigneeId ?? ''}
+            aria-label="Người làm"
+            onChange={(e) => {
+              assign(ticket.id, e.target.value || null, actorId);
+              toast({ kind: 'ok', title: 'Đã cập nhật người làm' });
+            }}
+          >
+            <option value="">Chưa ai nhận</option>
+            {TEAM.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+                {p.id === actorId ? ' (tôi)' : ''}
+              </option>
+            ))}
+          </select>
+        </dd>
+        <dt>Ưu tiên</dt>
+        <dd>
+          <select
+            className="select"
+            value={ticket.priority}
+            aria-label="Mức ưu tiên"
+            onChange={(e) => {
+              setPriority(ticket.id, e.target.value as Priority, actorId);
+              toast({ kind: 'ok', title: 'Đã đổi mức ưu tiên' });
+            }}
+          >
+            {PRIORITY_ORDER.map((p) => (
+              <option key={p} value={p}>
+                {PRIORITY_LABEL[p].title}
+              </option>
+            ))}
+          </select>
+        </dd>
+        <dt>Người báo</dt>
         <dd>
           <span className="person">
-            <Avatar person={requester} size={28} />
+            <Avatar person={reporter} size={28} />
             <span>
-              {requester?.name}
-              <small>
-                {requester?.title} · {requester?.department}
-              </small>
+              {reporter?.name}
+              <small>{reporter?.title}</small>
             </span>
           </span>
         </dd>
-        <dt>Người xử lý</dt>
-        <dd>
-          {isAgent && ticket.status !== 'closed' ? (
-            <select
-              className="select"
-              value={ticket.assigneeId ?? ''}
-              aria-label="Người xử lý"
-              onChange={(e) => {
-                assign(ticket.id, e.target.value || null, actorId);
-                toast({ kind: 'ok', title: 'Đã cập nhật người xử lý' });
-              }}
-            >
-              <option value="">Chưa phân công</option>
-              {AGENTS.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                  {a.id === actorId ? ' (tôi)' : ''}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="person">
-              <Avatar person={assignee} size={28} />
-              <span>{assignee?.name ?? 'Đang chờ phân công'}</span>
-            </span>
-          )}
-        </dd>
-        <dt>SLA xử lý</dt>
-        <dd>
-          <SlaMeter ticket={ticket} now={now} />
-        </dd>
-        <dt>Ảnh hưởng</dt>
-        <dd>
-          {IMPACT_LABEL[ticket.impact].title} · {URGENCY_LABEL[ticket.urgency].title}
-        </dd>
         <dt>Tạo lúc</dt>
         <dd>{formatDateTime(ticket.createdAt)}</dd>
-        {ticket.asset && (
+        {ticket.startedAt && (
           <>
-            <dt>Thiết bị</dt>
-            <dd>{ticket.asset}</dd>
+            <dt>Bắt đầu làm</dt>
+            <dd>{formatDateTime(ticket.startedAt)}</dd>
           </>
         )}
-        {ticket.location && (
+        {ticket.doneAt && (
           <>
-            <dt>Vị trí</dt>
-            <dd>{ticket.location}</dd>
+            <dt>Xong lúc</dt>
+            <dd>{formatDateTime(ticket.doneAt)}</dd>
           </>
         )}
+        <dt>{ticket.doneAt ? 'Tổng thời gian' : 'Đã mở'}</dt>
+        <dd>{formatDuration(openFor)}</dd>
       </dl>
     </section>
   );

@@ -1,13 +1,16 @@
 /* ---------- New ticket form ---------- */
-.pick-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+.new-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .choice-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+}
+.choice-grid.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .choice {
   padding: 12px;
@@ -22,12 +25,16 @@
   background: var(--ux-surface-2);
 }
 .choice b {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ux-ink);
   font-size: 13.5px;
   font-weight: 600;
 }
 .choice small {
+  display: block;
+  margin-top: 2px;
   color: var(--ux-ink-3);
   font-size: 12px;
 }
@@ -35,94 +42,46 @@
   background: var(--ux-accent-soft);
   border-color: var(--ux-accent);
 }
-.prio-preview {
+/* Priority choices carry their semantic color on a small square, like .prio. */
+.choice-prio::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--c);
+}
+.label-row {
   display: flex;
-  gap: 14px;
   align-items: center;
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--ux-line);
-  background: var(--ux-surface-2);
+  justify-content: space-between;
+  gap: 8px;
 }
-.prio-preview b {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--c);
-  background: color-mix(in srgb, var(--c) 10%, var(--ux-surface));
+.new-ticket .textarea {
+  min-height: 180px;
 }
-.suggest {
+.new-ticket [aria-invalid='true'] {
+  border-color: var(--ux-danger);
+}
+.field small.error {
+  color: var(--ux-danger);
+}
+.form-actions {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-.suggest button {
-  height: 28px;
-  padding: 0 10px;
-  border-radius: 6px;
-  border: 1px solid var(--ux-line);
-  background: var(--ux-surface);
-  font-size: 12px;
-  color: var(--ux-ink-2);
-  cursor: pointer;
-}
-.suggest button:hover {
-  background: var(--ux-surface-2);
-}
-.kb-hint {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--ux-accent-2) 30%, transparent);
-  background: var(--ux-accent-soft);
-  font-size: 13px;
-  color: var(--ux-ink-2);
-}
-.kb-hint svg {
-  flex: none;
-  margin-top: 1px;
-  color: var(--ux-accent);
-}
-.review {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 10px 12px;
-  margin: 0;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid var(--ux-line);
-}
-.review dt {
-  color: var(--ux-ink-3);
-  font-size: 12.5px;
-}
-.review dd {
-  margin: 0;
-  color: var(--ux-ink);
-  font-weight: 500;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ux-line);
 }
 
-@media (max-width: 1024px) {
-  .pick-grid {
+@media (max-width: 760px) {
+  .choice-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 560px) {
-  .pick-grid,
-  .choice-grid {
+@media (max-width: 420px) {
+  .choice-grid,
+  .choice-grid.cols-2 {
     grid-template-columns: 1fr;
-  }
-  .review {
-    grid-template-columns: 96px 1fr;
   }
 }

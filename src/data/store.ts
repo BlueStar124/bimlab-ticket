@@ -1,24 +1,27 @@
 // Client-side store persisted to localStorage so the demo survives reloads.
-// Action modules (ticketActions, incidentActions, notifications) are the only writers;
+// Action modules (ticketActions, chatActions, notifications) are the only writers;
 // they are the seam to replace with REST calls once a backend exists.
 import { useSyncExternalStore } from 'react';
 import { buildSeed } from '@/data/seed';
-import type { Incident } from '@/domain/incident';
+import type { ChatMessage } from '@/domain/chat';
 import type { Ticket, TicketEvent } from '@/domain/ticket';
 
-const STORAGE_KEY = 'bimlab-ticket:data:v1';
+// v2: IT-team tracker. Data from the v1 helpdesk prototype has another shape and is ignored.
+const STORAGE_KEY = 'bimlab-ticket:data:v2';
 
 export interface StoreState {
   tickets: Ticket[];
   events: TicketEvent[];
   /** Notification event ids each person has read. */
   readBy: Record<string, string[]>;
-  /** Incident notices posted by the IT team. Starts empty: nothing is shown until IT posts. */
-  incidents: Incident[];
+  /** Team channel, oldest first. */
+  messages: ChatMessage[];
+  /** Time of the newest channel message each person has seen. */
+  chatReadAt: Record<string, string>;
 }
 
 function freshState(): StoreState {
-  return { ...buildSeed(Date.now()), readBy: {}, incidents: [] };
+  return { ...buildSeed(Date.now()), readBy: {} };
 }
 
 function load(): StoreState {
@@ -26,9 +29,16 @@ function load(): StoreState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const saved = JSON.parse(raw) as Partial<StoreState>;
-      // Data saved before incident notices existed has no "incidents" field.
       if (saved.tickets && saved.events) {
-        return { tickets: saved.tickets, events: saved.events, readBy: saved.readBy ?? {}, incidents: saved.incidents ?? [] };
+        // Data saved before the team channel existed gets the demo conversation.
+        const seed = saved.messages ? null : buildSeed(Date.now());
+        return {
+          tickets: saved.tickets,
+          events: saved.events,
+          readBy: saved.readBy ?? {},
+          messages: seed ? seed.messages : saved.messages!,
+          chatReadAt: saved.chatReadAt ?? seed?.chatReadAt ?? {},
+        };
       }
     }
   } catch {

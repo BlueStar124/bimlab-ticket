@@ -1,0 +1,21 @@
+/* Lucian UX/UI Prompt #268 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#268 */
+/* BIMLab pass: avatars use the brand avatar colors instead of per-person rainbow fills; motion untouched. */
+/* Adapted: only the mention list and the "will be notified" row are used, inside the #078 composer. The list opens
+   above the input (anchored bottom-left) and the notified row sits in flow above the bar instead of a fixed card. */
+.u268{position:relative;color:var(--ux-ink)}
+.u268-pp{position:absolute;left:12px;bottom:calc(100% + 6px);z-index:3;width:min(280px,calc(100% - 24px));padding:5px;border-radius:13px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line),0 16px 32px -12px var(--ux-shadow-strong);transform-origin:12px 100%;transform:scale(.9) translateY(4px);opacity:0;pointer-events:none;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .12s}
+.u268.is-pop .u268-pp{transform:none;opacity:1;pointer-events:auto}
+.u268-op{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 7px;border:0;border-radius:9px;background:none;color:var(--ux-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-align:left}
+.u268-op.is-on,.u268-op:hover{background:var(--ux-surface-2)}
+.u268-op i{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--ux-accent);background:var(--ux-accent-soft);font-style:normal;font-size:9.5px;font-weight:800}
+.u268-op span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u268-op span b{font-weight:800;color:var(--ux-accent)}
+.u268-op small{font-size:11px;font-weight:600;color:var(--ux-ink-3);white-space:nowrap}
+.u268-no{padding:9px;font-size:12px;font-weight:600;color:var(--ux-ink-3)}
+.u268-ft{display:flex;align-items:center;gap:8px;padding:0 16px 8px}
+.u268-ft small{font-size:11px;font-weight:700;color:var(--ux-ink-3);white-space:nowrap}
+.u268-av{display:flex;flex:1;padding-left:6px;min-height:26px;align-items:center}
+.u268-av i{width:26px;height:26px;margin-left:-6px;border-radius:50%;display:grid;place-items:center;color:var(--ux-accent);background:var(--ux-accent-soft);font-style:normal;font-size:10px;font-weight:800;box-shadow:0 0 0 2.5px var(--ux-surface);animation:u268-in .4s cubic-bezier(.3,1.7,.5,1)}
+@keyframes u268-in{from{transform:scale(0)}}
+.u268 button:focus-visible{outline:2px solid var(--ux-accent);outline-offset:1px}
+@media (prefers-reduced-motion: reduce){.u268-pp{transition:none}.u268-av i{animation:none}}

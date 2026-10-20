@@ -1,6 +1,7 @@
 /* Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032 */
 /* BIMLab pass: radii 8–12px, flat at rest (1px line instead of soft drop shadows), no gradients/purple; motion untouched. */
-/* Adapted: fluid width and auto height inside the ticket form; brand-navy orb. */
+/* Adapted: fluid width and auto height inside the ticket form; brand-navy orb; zone copy wraps on narrow screens; a remove button per row (.u032-del,
+   same 30px circle as the status mark) replaces Retry, and removed rows leave with the element's own .out motion. */
 .u032{position:relative;width:100%}
 .u032-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:168px;border:0;padding:0;border-radius:12px;background:var(--ux-surface);color:var(--ux-ink);cursor:pointer;
   transition:transform .5s var(--ux-spring),background-color .3s var(--ux-ease)}
@@ -17,6 +18,7 @@
 .u032-zone b{margin-top:14px;font-size:15.5px;font-weight:720;letter-spacing:-.02em}
 .u032-zone b em{font-style:normal;color:var(--ux-accent)}
 .u032-zone small{margin-top:4px;font-size:12.5px;color:var(--ux-ink-3)}
+.u032-zone b,.u032-zone small{max-width:100%;padding:0 16px;text-align:center}
 .u032-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .u032-list{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 .u032-row{position:relative;display:flex;align-items:center;gap:12px;height:60px;padding:0 12px;border-radius:10px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line);overflow:hidden;animation:u032-in .5s var(--ux-spring)}
@@ -36,7 +38,10 @@
 .u032-row.done .u032-st path{stroke-dasharray:16;stroke-dashoffset:16;animation:u032-draw .4s var(--ux-ease) .15s forwards}
 @keyframes u032-draw{to{stroke-dashoffset:0}}
 .u032-row.fail .u032-meta small{color:var(--ux-danger)}
-.u032-retry{height:32px;padding:0 12px;border:0;border-radius:10px;background:color-mix(in srgb,var(--ux-danger) 12%,transparent);color:var(--ux-danger);font-size:12.5px;font-weight:700;white-space:nowrap}
-.u032-retry:focus-visible{outline:2px solid var(--ux-danger);outline-offset:2px}
+.u032-del{width:30px;height:30px;flex:none;border:0;padding:0;border-radius:50%;display:grid;place-items:center;background:none;color:var(--ux-ink-3);transition:background-color .2s var(--ux-ease),color .2s var(--ux-ease)}
+.u032-del svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.u032-del:hover{background:color-mix(in srgb,var(--ux-danger) 12%,transparent);color:var(--ux-danger)}
+.u032-del:focus-visible{outline:2px solid var(--ux-danger);outline-offset:2px;color:var(--ux-danger)}
+.u032-row.out{pointer-events:none}
 .u032-spin{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ux-surface-3);border-top-color:var(--ux-accent);animation:u032-rot .8s linear infinite}
 @keyframes u032-rot{to{transform:rotate(360deg)}}
