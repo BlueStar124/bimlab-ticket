@@ -1,0 +1,42 @@
+/* Lucian UX/UI Prompt #074 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#074 */
+/* Adapted: header bell with a dropdown panel (was a 340×500 demo with its own title bar); bell 40px to fit the app bar. */
+/* BIMLab pass: radii 8–12px, flat at rest (1px line instead of soft drop shadows), no gradients/purple; motion untouched. */
+.u074{position:relative}
+.u074-bell{position:relative;width:40px;height:40px;border:0;padding:0;border-radius:10px;display:grid;place-items:center;background:var(--ux-surface);color:var(--ux-ink-2);box-shadow:inset 0 0 0 1px var(--ux-line);transition:transform .3s var(--ux-spring)}
+.u074-bell:active{transform:scale(.9)}
+.u074-bell:focus-visible{outline:2px solid var(--ux-accent);outline-offset:3px}
+.u074-bell svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:50% 15%}
+.u074-bell.ring svg{animation:u074-ring .9s var(--ux-ease)}
+@keyframes u074-ring{10%{transform:rotate(18deg)}25%{transform:rotate(-16deg)}40%{transform:rotate(12deg)}55%{transform:rotate(-8deg)}70%{transform:rotate(4deg)}}
+.u074-badge{position:absolute;right:-4px;top:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--ux-danger);color:#fff;font-size:11px;font-weight:850;line-height:20px;text-align:center;box-shadow:0 0 0 2.5px var(--ux-surface);font-variant-numeric:tabular-nums;transition:transform .4s var(--ux-spring)}
+.u074-badge.zero{transform:scale(0)}
+.u074-pan{position:absolute;right:-8px;top:52px;z-index:120;width:min(380px,calc(100vw - 24px));max-height:min(520px,calc(100vh - 90px));display:flex;flex-direction:column;border-radius:12px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line),0 16px 32px var(--ux-shadow-strong);transform-origin:calc(100% - 28px) -10px;transition:transform .45s var(--ux-spring),opacity .25s}
+.u074-pan::before{content:"";position:absolute;right:21px;top:-6px;width:14px;height:14px;border-radius:3px;background:var(--ux-surface);transform:rotate(45deg);box-shadow:-1px -1px 0 0 var(--ux-line)}
+.u074.is-closed .u074-pan{transform:scale(.4);opacity:0;pointer-events:none;transition:transform .3s var(--ux-ease),opacity .2s}
+.u074-ph{display:flex;align-items:center;gap:6px;padding:14px 14px 10px}
+.u074-tab{height:32px;padding:0 12px;border:0;border-radius:8px;background:none;font-size:13px;font-weight:750;color:var(--ux-ink-3);transition:background-color .25s,color .25s}
+.u074-tab[aria-selected="true"]{background:var(--ux-accent-soft);color:var(--ux-accent)}
+.u074-tab:focus-visible,.u074-all:focus-visible{outline:2px solid var(--ux-accent);outline-offset:2px}
+.u074-all{margin-left:auto;border:0;padding:4px 6px;background:none;font-size:12.5px;font-weight:750;color:var(--ux-accent)}
+.u074-all:disabled{color:var(--ux-ink-3);cursor:default}
+.u074-list{position:relative;flex:1;margin:0;padding:0 8px 10px;list-style:none;overflow-y:auto}
+.u074-it{display:grid;grid-template-rows:1fr;transition:grid-template-rows .45s var(--ux-ease)}
+.u074-it.new{grid-template-rows:0fr}
+.u074-it.hide{display:none}
+.u074-it>div{min-height:0;overflow:hidden}
+.u074-row{position:relative;display:flex;gap:12px;width:100%;padding:11px 26px 11px 10px;border:0;border-radius:8px;background:none;text-align:left;transition:background-color .2s}
+.u074-row:hover{background:var(--ux-surface-2)}
+.u074-row:focus-visible{outline:2px solid var(--ux-accent);outline-offset:-2px}
+.u074-it.new .u074-row{transform:translateY(-30px);opacity:0}
+.u074-row{transition:background-color .2s,transform .5s var(--ux-spring),opacity .3s}
+.u074-av{position:relative;width:38px;height:38px;flex:none;border-radius:50%;background:var(--g)}
+.u074-av em{position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--ux-surface);font-style:normal;font-size:10px}
+.u074-tx{flex:1;min-width:0;font-size:13px;line-height:1.45;color:var(--ux-ink-2)}
+.u074-tx b{color:var(--ux-ink);font-weight:780}
+.u074-tx small{display:block;margin-top:2px;font-size:11.5px;font-weight:650;color:var(--ux-ink-3)}
+.u074-dot{position:absolute;right:10px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--ux-accent);transition:transform .35s var(--ux-spring),opacity .25s}
+.u074-row.read .u074-dot{transform:scale(0);opacity:0}
+.u074-row.read .u074-tx{color:var(--ux-ink-3)}
+/* Added: event-type icon on a tinted square (replaces the gradient avatar + emoji badge) and empty row. */
+.u074-av{display:grid;place-items:center;border-radius:10px;color:var(--g);background:color-mix(in srgb,var(--g) 12%,transparent)}
+.u074-empty{padding:28px 12px;text-align:center;font-size:13px;color:var(--ux-ink-3)}

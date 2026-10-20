@@ -1,0 +1,11 @@
+/* Lucian UX/UI Prompt #219 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#219 */
+/* Adapted: only the header toggle is kept; the demo mini-page is dropped. The circular reveal now covers the
+   real page through the View Transitions API, using the original clip-path circle, .7s duration and easing. */
+.u219-tg{width:40px;height:40px;border:0;border-radius:10px;background:var(--ux-surface);box-shadow:inset 0 0 0 1px var(--ux-line);color:var(--ux-ink-2);display:grid;place-items:center;cursor:pointer}
+.u219-tg:focus-visible{outline:2px solid var(--ux-accent);outline-offset:2px}
+.u219-tg svg{width:18px;height:18px;transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
+.u219-tg[aria-pressed="true"] svg{transform:rotate(-90deg)}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-new(root){animation:u219-reveal .7s cubic-bezier(.65,0,.35,1)}
+@keyframes u219-reveal{from{clip-path:circle(0px at var(--u219-cx,100%) var(--u219-cy,0px))}to{clip-path:circle(var(--u219-r,150vmax) at var(--u219-cx,100%) var(--u219-cy,0px))}}
+@media (prefers-reduced-motion: reduce){.u219-tg svg{transition:none}::view-transition-new(root){animation:none}}

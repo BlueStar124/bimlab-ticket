@@ -1,0 +1,22 @@
+/* Lucian UX/UI Prompt #016 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#016 */
+/* Adapted: fluid width up to 330px, auto height, so it fits the rating card. */
+.u016{--gold:linear-gradient(160deg,#FFD66B,#FFAA2C 60%,#FF7A45);position:relative;width:100%;max-width:330px;min-height:200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.u016-q{margin:0;font-size:15px;font-weight:650;color:var(--ux-ink-2)}
+.u016-stars{display:flex;gap:6px;border-radius:16px}
+.u016-stars:focus-visible{outline:2px solid var(--ux-accent);outline-offset:6px}
+.u016-s{position:relative;width:52px;height:52px;padding:0;border:0;background:none;transition:transform .35s var(--ux-spring)}
+.u016-s svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.u016-s .bg{fill:var(--ux-surface-3);stroke:var(--ux-line-2);stroke-width:1}
+.u016-s .fg{fill:url(#u016-g);transform-origin:50% 55%;transform:scale(0);transition:transform .4s var(--ux-spring)}
+.u016-s.is-pre .fg{transform:scale(.72);opacity:.55}
+.u016-s.is-on .fg{transform:scale(1);opacity:1}
+.u016-s:hover{transform:scale(1.12) rotate(-6deg)}
+.u016-s.is-pop{animation:u016-pop .55s var(--ux-spring)}
+@keyframes u016-pop{0%{transform:scale(1)}35%{transform:scale(1.32) rotate(12deg)}100%{transform:scale(1)}}
+.u016-s i{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#FFB547;opacity:0;pointer-events:none}
+.u016-s.is-pop i{animation:u016-spark .6s var(--ux-ease) forwards}
+@keyframes u016-spark{0%{opacity:1;transform:rotate(var(--a)) translateY(-14px) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-40px) scale(.3)}}
+.u016-out{display:flex;align-items:baseline;gap:10px;height:40px}
+.u016-score{font-size:34px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;transition:color .4s var(--ux-ease)}
+.u016-word{position:relative;height:24px;width:150px;overflow:hidden;font-size:16px;font-weight:700}
+.u016-word span{position:absolute;left:0;top:0;line-height:24px;white-space:nowrap;transition:transform .5s var(--ux-spring),opacity .3s var(--ux-ease)}

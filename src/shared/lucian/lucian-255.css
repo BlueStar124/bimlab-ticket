@@ -1,0 +1,30 @@
+/* Lucian UX/UI Prompt #255 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#255 */
+/* Adapted: fluid full-page board (4 status columns, horizontal scroll on narrow screens) instead of a 340px square;
+   text and card padding scaled up for real tickets; "done" styling keyed on data-done instead of column index.
+   Lift, landing, placeholder and count-pop motion values are unchanged. */
+/* BIMLab pass: radii 8–12px, flat at rest (1px line instead of soft drop shadows), no gradients/purple; motion untouched. */
+.u255{position:relative;width:100%;min-height:520px;border-radius:12px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line);color:var(--ux-ink);user-select:none;overflow-x:auto}
+.u255-bd{position:relative;display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:10px;padding:14px;min-width:1000px}
+.u255-col{position:relative;padding:10px 8px;border-radius:10px;min-height:480px;background:var(--ux-surface-2);box-shadow:inset 0 0 0 1px var(--ux-line);transition:background .2s,box-shadow .2s}
+.u255-col.is-over{background:color-mix(in srgb,var(--ux-accent) 9%,var(--ux-surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ux-accent) 45%,transparent)}
+.u255-ch{display:flex;align-items:center;gap:7px;padding:2px 6px 10px;font-size:13px;font-weight:700;color:var(--ux-ink-2)}
+.u255-ch i{width:8px;height:8px;border-radius:50%}
+.u255-ch b{margin-left:auto;min-width:22px;height:20px;padding:0 6px;border-radius:10px;background:var(--ux-surface);font-size:11.5px;font-weight:800;line-height:20px;text-align:center;font-variant-numeric:tabular-nums;box-sizing:border-box}
+.u255-ch b.is-pop{animation:u255-pop .4s cubic-bezier(.3,1.7,.5,1)}
+@keyframes u255-pop{40%{transform:scale(1.35)}}
+.u255-cd{position:relative;margin-bottom:8px;padding:11px 12px 12px;border-radius:8px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line),0 1px 2px var(--ux-shadow);cursor:grab;transition:box-shadow .2s,transform .2s;touch-action:none}
+.u255-cd:hover{box-shadow:0 0 0 1px var(--ux-line-2),0 1px 2px var(--ux-shadow)}
+.u255-cd:focus-visible{outline:2px solid var(--ux-accent);outline-offset:2px}
+.u255-cd small{padding-right:20px;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ux-ink-3);font-variant-numeric:tabular-nums}
+.u255-cd b{display:block;margin-top:4px;padding-right:18px;font-size:13.5px;line-height:1.4;font-weight:650;text-decoration-thickness:1.5px;text-decoration-color:var(--ux-ink-3)}
+.u255-cd>span{display:inline-flex;margin-top:8px;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:650;color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.u255-cd footer{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:8px;font-size:11.5px;color:var(--ux-ink-3)}
+.u255-cd em{position:absolute;right:9px;top:10px;width:16px;height:16px;border-radius:50%;background:#10B981;transform:scale(0);transition:transform .35s cubic-bezier(.3,1.7,.5,1)}
+.u255-cd em::after{content:"";position:absolute;left:5.5px;top:3px;width:3.5px;height:7px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
+.u255-col[data-done] .u255-cd b,.u255-cd[data-done] b{text-decoration-line:line-through;color:var(--ux-ink-3)}
+.u255-col[data-done] .u255-cd em,.u255-cd[data-done] em{transform:none}
+.u255-cd.is-lift{position:absolute;z-index:10;margin:0;cursor:grabbing;transform:rotate(3deg) scale(1.04);box-shadow:0 0 0 1px var(--ux-line),0 18px 30px -12px var(--ux-shadow-strong);transition:transform .2s,box-shadow .2s}
+.u255-cd.is-land{position:absolute;z-index:10;margin:0;transition:left .28s cubic-bezier(.3,1.2,.5,1),top .28s cubic-bezier(.3,1.2,.5,1),transform .28s}
+.u255-ph{margin-bottom:8px;border-radius:8px;border:1.5px dashed color-mix(in srgb,var(--ux-accent) 50%,transparent);background:color-mix(in srgb,var(--ux-accent) 6%,transparent);transition:height .2s cubic-bezier(.3,1.2,.5,1)}
+.u255-empty{padding:18px 8px;text-align:center;font-size:12.5px;color:var(--ux-ink-3)}
+@media (prefers-reduced-motion: reduce){.u255-cd,.u255-cd.is-land,.u255-ph,.u255-cd em{transition:none}.u255-ch b.is-pop{animation:none}}

@@ -1,0 +1,86 @@
+/* Base: status/priority colour variables, reset and typography.
+   Follows BIMLab DESIGN.md (HRM): neutral workspace, navy only for primary actions, one font. */
+
+:root {
+  --st-new: #1d4ed8;
+  --st-progress: #154d7c;
+  --st-waiting: #b45309;
+  --st-resolved: #047857;
+  --st-closed: #6b7280;
+  --pr-1: #be123c;
+  --pr-2: #c2410c;
+  --pr-3: #1d4ed8;
+  --pr-4: #6b7280;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --st-new: #93c5fd;
+    --st-progress: #7fb2de;
+    --st-waiting: #fbbf24;
+    --st-resolved: #34d399;
+    --st-closed: #9ca3af;
+    --pr-1: #fb7185;
+    --pr-2: #fb923c;
+    --pr-3: #93c5fd;
+    --pr-4: #9ca3af;
+  }
+}
+:root[data-theme='dark'] {
+  --st-new: #93c5fd;
+  --st-progress: #7fb2de;
+  --st-waiting: #fbbf24;
+  --st-resolved: #34d399;
+  --st-closed: #9ca3af;
+  --pr-1: #fb7185;
+  --pr-2: #fb923c;
+  --pr-3: #93c5fd;
+  --pr-4: #9ca3af;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--ux-page);
+  color: var(--ux-ink-2);
+  font-family: 'Be Vietnam Pro', 'Noto Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3,
+h4 {
+  color: var(--ux-ink);
+  margin: 0;
+  line-height: 1.35;
+}
+a {
+  color: var(--ux-accent-2);
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--ux-accent-2);
+  outline-offset: 2px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
