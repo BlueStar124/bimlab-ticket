@@ -42,6 +42,12 @@
   color: var(--ux-ink);
   white-space: nowrap;
 }
+.celebration-confetti .celebration-mascot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -32%);
+}
 .celebration-confetti .celebration-label {
   margin-top: -40px;
   padding: 6px 12px;

@@ -93,16 +93,36 @@ Import dùng alias `@/` (trỏ tới `src/`). Phụ thuộc một chiều: `doma
 
 | Chỗ | Hình |
 |---|---|
-| Tổng quan, cạnh tiêu đề | *Hub* |
 | Tổng quan, trống | *Basket* (không có việc của tôi), *Settle* (mọi ticket đã có người làm) |
 | Danh sách, trống | *Loupe* (lọc không ra, kèm Xóa bộ lọc), *Basket* (chưa có ticket) |
 | Kanban, cạnh tiêu đề | *Slow* |
 | Báo lỗi, cạnh tiêu đề | *Stack* (lỗi phần mềm) / *Cabinet* (hạ tầng), đổi theo loại |
 | Chi tiết ticket, góc thẻ | theo hạng mục: *Terminal* (lỗi phần mềm), *Cabinet* máy chủ, *Branches* CI/CD, *Rebuild* Docker, *Drawer* CSDL, *Router* mạng, *Padlock* tài khoản, *Patch* hạ tầng khác (`detail/areaFigure.ts`) |
-| Chi tiết ticket, không tìm thấy | *Query* |
 | Tin nhắn, kênh trống | *Relay* |
 
 **Hiệu năng.** Trang chỉ đặt tên hình (`<LineFigure figure="hub" … />`); code hình nằm trong một chunk `vendor-hairline` (~28KB gzip, chỉ gồm các hình liệt kê trong `src/shared/ui/figures.ts`) được tải bằng dynamic import khi hình đầu tiên đến gần màn hình, một lần cho cả phiên và cache lâu dài. Trang không có hình trong tầm nhìn không tải chunk này; khung giữ sẵn tỉ lệ 5:4 nên không giật bố cục; hình ẩn ở màn hẹp. Không dùng `@lucasmarkes/hairline/react` vì entry này nạp cả 33 hình. Thêm hình mới: export nó trong `figures.ts` rồi dùng tên.
+
+## Linh vật Bim
+
+Bim là chú hải ly ("kỹ sư xây dựng" của tự nhiên, hợp với BIM) mặc đồng phục BIMLab: tạp dề navy in ba vạch của logo BIMLab, túi có bút chì kiến trúc sư, mũ bảo hộ vàng có vạch navy và cùng biểu tượng. Vẽ bằng SVG trong `src/shared/mascot/Mascot.tsx`, chuyển động bằng CSS (`mascot.css`): thở nhẹ, chớp mắt, vẫy đuôi; dừng khi người dùng bật giảm chuyển động. Khoảng 2KB gzip, không có JavaScript chạy nền.
+
+| Trạng thái (`mood`) | Ở đâu |
+|---|---|
+| `wave`: vẫy tay | Bim đi dạo, khi chuột lại gần |
+| `happy`: nhảy cẫng, hai tay giơ cao | Lớp phủ confetti khi ticket Xong |
+| `think`: tay chống cằm, bong bóng "?" | Chi tiết ticket không tìm thấy |
+| `idle` + `crop="head"` | Avatar kênh Tin nhắn |
+| `walk`: chân bước, tay vung | Bim đi dạo (bên dưới) |
+
+### Bim đi dạo trên web
+
+Bim đi qua lại dọc đáy cửa sổ, thỉnh thoảng nghỉ; mắt nhìn theo con trỏ, chuột lại gần thì dừng lại, quay mặt và vẫy tay. Bấm (hoặc Tab rồi Enter) để Bim nhảy cẫng và nói một câu: số ticket khẩn cấp/chưa ai nhận, việc của bạn, hoặc mẹo dùng app (`features/bim/bimTips.ts`). Kéo để nhấc Bim đi, thả ra Bim rơi xuống đất. Bấm logo BIMLab (thanh trên cùng) thì Bim rơi từ dưới logo xuống, kể cả khi đang bị cất đi. Nút × cất Bim đi (nhớ trong trình duyệt); bật lại bằng logo hoặc nút "Gọi Bim ra chơi" ở footer. Ẩn ở trang Tin nhắn để không che ô soạn.
+
+- Hành vi là hàm thuần trong `features/bim/engine.ts` (có test); `RoamingBim.tsx` chạy một vòng `requestAnimationFrame`, ghi vị trí thẳng vào DOM, React chỉ render lại khi đổi dáng hoặc bong bóng.
+- Tải sau (chunk riêng ~3.6KB gzip), không nằm trên đường tải đầu tiên.
+- Giảm chuyển động: Bim ngồi yên, vẫn bấm được.
+
+Dùng: `<Mascot mood="wave" size={64} label="" />` (`label=""` khi chỉ để trang trí cạnh chữ), hoặc `<EmptyState mascot="think" … />`.
 
 ## Animation Lottie (tự vẽ, lottie-web MIT)
 

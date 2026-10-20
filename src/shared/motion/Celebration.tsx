@@ -3,6 +3,7 @@
 // Purely decorative: it never takes focus or clicks, the toast carries the message for screen readers,
 // and nothing plays when the user prefers reduced motion.
 import { useEffect, useState } from 'react';
+import { Mascot } from '@/shared/mascot/Mascot';
 import { LottieAnimation } from '@/shared/motion/LottieAnimation';
 import { loadMotion, prefersReducedMotion } from '@/shared/motion/motion';
 import './celebration.css';
@@ -53,6 +54,7 @@ export function CelebrationHost() {
   return (
     <div className={`celebration celebration-${current.kind}${leaving ? ' is-leaving' : ''}`} aria-hidden="true">
       <LottieAnimation key={current.id} name={current.kind === 'check' ? 'successCheck' : 'confetti'} className="celebration-art" onComplete={() => setLeaving(true)} />
+      {current.kind === 'confetti' && <Mascot key={`bim-${current.id}`} mood="happy" size={92} label="" className="celebration-mascot" />}
       {current.label && <span className="celebration-label">{current.label}</span>}
     </div>
   );

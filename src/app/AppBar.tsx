@@ -6,6 +6,7 @@ import { preloadRoute } from '@/app/routes';
 import { markRead } from '@/data/notifications';
 import { setCurrentUser } from '@/data/session';
 import { useStore } from '@/data/store';
+import { dropBim } from '@/features/bim/bimPrefs';
 import { unreadCount } from '@/domain/chat';
 import { TEAM } from '@/domain/people';
 import type { Person } from '@/domain/ticket';
@@ -53,7 +54,16 @@ export function AppBar({ me }: { me: Person }) {
   return (
     <header className="appbar">
       <div className="appbar-in">
-        <Link to="/" className="brand" aria-label="BIMLab Ticket — tổng quan">
+        <Link
+          to="/"
+          className="brand"
+          aria-label="BIMLab Ticket — tổng quan"
+          onClick={(e) => {
+            // The logo also drops Bim from just under it (and brings him back if he was put away).
+            const r = e.currentTarget.getBoundingClientRect();
+            dropBim({ x: r.left + 30, y: r.bottom + 6 });
+          }}
+        >
           <BrandMark />
           <img src="/bimlab-logo.png" alt="BIMLab" width={75} height={24} decoding="async" />
           <span className="brand-sub">Ticket team IT</span>

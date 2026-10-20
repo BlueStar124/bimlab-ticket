@@ -23,7 +23,7 @@ export function TicketDetailPage() {
     return (
       <main className="page">
         <div className="card">
-          <EmptyState figure="query" figureLabel="Dấu hỏi" title="Không tìm thấy ticket này" text="Ticket có thể đã bị xóa khỏi dữ liệu demo, hoặc đường dẫn bị sai.">
+          <EmptyState mascot="think" title="Không tìm thấy ticket này" text="Ticket có thể đã bị xóa khỏi dữ liệu demo, hoặc đường dẫn bị sai.">
             <Link to="/ticket" className="btn btn-secondary btn-sm">
               Về danh sách
             </Link>

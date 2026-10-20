@@ -316,7 +316,8 @@
   text-align: center;
   color: var(--ux-ink-3);
 }
-.empty > svg {
+/* Muted icon in a plain empty state; the mascot keeps its own colours. */
+.empty > svg:not(.mascot) {
   color: var(--ux-ink-3);
   opacity: 0.6;
   margin-bottom: 6px;

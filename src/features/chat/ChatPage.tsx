@@ -13,7 +13,7 @@ import { ChatComposer } from '@/shared/lucian/ChatComposer';
 import { SwipeReplyThread, type ThreadItem } from '@/shared/lucian/SwipeReplyThread';
 import { toast } from '@/shared/lucian/Toaster';
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { Icon } from '@/shared/ui/Icon';
+import { Mascot } from '@/shared/mascot/Mascot';
 import './chat.css';
 
 /** Consecutive messages from one person within this gap share a single author line. */
@@ -109,7 +109,7 @@ export function ChatPage() {
       <div className="ux u078">
         <div className="u078-top">
           <i aria-hidden="true">
-            <Icon name="chat" size={18} />
+            <Mascot crop="head" size={30} label="" />
           </i>
           <span>
             <h1 className="chat-title">Kênh chung team IT</h1>

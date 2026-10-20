@@ -10,7 +10,6 @@ import { Avatar } from '@/features/tickets/components/TicketBits';
 import { TicketTable } from '@/features/tickets/components/TicketTable';
 import { useNow } from '@/shared/hooks/useNow';
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { LineFigure } from '@/shared/ui/LineFigure';
 import { LottieAnimation } from '@/shared/motion/LottieAnimation';
 import { Icon } from '@/shared/ui/Icon';
 import './dashboard.css';
@@ -52,7 +51,6 @@ export function DashboardPage() {
           <p>Xin chào {me.name.split(' ').pop()}. Ưu tiên việc khẩn cấp và việc chưa ai nhận.</p>
         </div>
         <div className="page-actions">
-          <LineFigure figure="hub" label="Các ô nối về một trung tâm" className="page-figure" />
           <Link to="/kanban" className="btn btn-secondary">
             <Icon name="board" size={18} /> Kanban
           </Link>
