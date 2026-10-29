@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getState, resetDemoData } from '@/data/store';
+import { setTeam } from '@/data/people';
+import { getState, resetStore } from '@/data/store';
 import { addComment, assign, changeStatus, createTicket } from '@/data/ticketActions';
 
 const input = { title: 'API trả 500', description: 'Gọi /employees bị lỗi 500', areaId: 'hrm', environment: 'test' as const, priority: 'high' as const, assigneeId: null, attachments: [] };
@@ -7,8 +8,13 @@ const input = { title: 'API trả 500', description: 'Gọi /employees bị lỗ
 const ticketById = (id: string) => getState().tickets.find((t) => t.id === id)!;
 const eventsOf = (id: string) => getState().events.filter((e) => e.ticketId === id);
 
+const TEAM = ['nam', 'duc', 'huy', 'trang', 'bao', 'hanh'].map((n) => ({ id: 'it-' + n, name: n, title: '' }));
+
 describe('ticketActions', () => {
-  beforeEach(() => resetDemoData());
+  beforeEach(() => {
+    resetStore();
+    setTeam(TEAM);
+  });
 
   it('creates a new, unassigned ticket with a "created" event', () => {
     const t = createTicket(input, 'it-trang');

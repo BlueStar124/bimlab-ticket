@@ -1,6 +1,6 @@
 // Side card: reporter, assignee and priority (editable by anyone in the team), work timestamps.
 import { assign, setPriority } from '@/data/ticketActions';
-import { TEAM, personById } from '@/domain/people';
+import { teamMembers, personById } from '@/data/people';
 import type { Priority, Ticket } from '@/domain/ticket';
 import { PRIORITY_LABEL, PRIORITY_ORDER, formatDateTime, formatDuration } from '@/domain/ticket';
 import { Avatar } from '@/features/tickets/components/TicketBits';
@@ -27,7 +27,7 @@ export function TicketInfo({ ticket, now, actorId }: { ticket: Ticket; now: numb
             }}
           >
             <option value="">Chưa ai nhận</option>
-            {TEAM.map((p) => (
+            {teamMembers().map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
                 {p.id === actorId ? ' (tôi)' : ''}

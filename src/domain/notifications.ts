@@ -1,22 +1,24 @@
-// Who gets notified about which ticket activity. Pure rule over tickets and events.
-import type { Ticket, TicketEvent } from '@/domain/ticket';
-import { isOpen } from '@/domain/ticket';
+// A notification-bell row as the server sends it. The server decides who is notified about what
+// (ticket activity for the reporter/assignee, new unassigned tickets for everyone, @mentions in the channel).
+import type { Priority, TicketEventKind, TicketStatus } from '@/domain/ticket';
 
-const MAX_ITEMS = 20;
+export interface AppNotification {
+  id: string;
+  source: 'ticket' | 'chat';
+  /** Set for ticket activity; null for channel mentions. */
+  ticketId: string | null;
+  actorId: string;
+  kind: TicketEventKind | 'mention';
+  text: string;
+  at: string;
+  toStatus: TicketStatus | null;
+  toAssigneeId: string | null;
+  toPriority: Priority | null;
+  read: boolean;
+}
 
-/** Activity by others that concerns the person, newest first. */
-export function notificationsFor(tickets: Ticket[], events: TicketEvent[], personId: string): TicketEvent[] {
-  const byId = new Map(tickets.map((t) => [t.id, t]));
-  return events
-    .filter((e) => {
-      const t = byId.get(e.ticketId);
-      if (!t || e.actorId === personId) return false;
-      // A new ticket without an assignee goes to the whole team until someone picks it up.
-      if (e.kind === 'created') return e.toAssigneeId ? e.toAssigneeId === personId : isOpen(t.status) && (!t.assigneeId || t.assigneeId === personId);
-      if (e.kind === 'assign') return e.toAssigneeId === personId || t.reporterId === personId;
-      // Status, priority and comments: the reporter and the current assignee.
-      return t.reporterId === personId || t.assigneeId === personId;
-    })
-    .sort((a, b) => b.at.localeCompare(a.at))
-    .slice(0, MAX_ITEMS);
+/** Marks the given ids read; ids that are not in the list are left alone. */
+export function withRead(notifications: AppNotification[], ids: string[]): AppNotification[] {
+  const marked = new Set(ids);
+  return notifications.map((n) => (marked.has(n.id) && !n.read ? { ...n, read: true } : n));
 }

@@ -1,11 +1,12 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCurrentUser } from '@/data/session';
-import { createTicket } from '@/data/ticketActions';
+import { createTicketApi, uploadTicketAttachment } from '@/data/ticketApi';
+import { refreshTicketFromBackend } from '@/data/store';
 import type { TicketKind } from '@/domain/areas';
 import { KIND_LABEL, areasOf } from '@/domain/areas';
-import { TEAM } from '@/domain/people';
-import type { Attachment, Environment, Priority } from '@/domain/ticket';
+import { teamMembers } from '@/data/people';
+import type { Environment, Priority } from '@/domain/ticket';
 import { ENVIRONMENT_LABEL, PRIORITY_LABEL, PRIORITY_ORDER } from '@/domain/ticket';
 import { PRIORITY_COLOR } from '@/features/tickets/components/TicketBits';
 import { FileDrop } from '@/shared/lucian/FileDrop';
@@ -33,7 +34,7 @@ export function NewTicketPage() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [assigneeId, setAssigneeId] = useState('');
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [tried, setTried] = useState(false);
 
   const errors = {
@@ -48,17 +49,23 @@ export function NewTicketPage() {
     setAreaId('');
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     setTried(true);
     if (!valid) return;
-    const ticket = createTicket(
-      { title: title.trim(), description: description.trim(), areaId, environment, priority, assigneeId: assigneeId || null, attachments },
-      me.id,
-    );
-    toast({ kind: 'ok', title: `Đã tạo ${ticket.code}`, detail: assigneeId ? undefined : 'Cả team đã nhận được thông báo' });
-    celebrate('check', `Đã tạo ${ticket.code}`);
-    navigate(`/ticket/${ticket.id}`);
+    try {
+      const ticket = await createTicketApi(
+        { title: title.trim(), description: description.trim(), areaId, environment, priority, assigneeId: assigneeId || null },
+      );
+      const uploadResults = await Promise.allSettled(files.map((file) => uploadTicketAttachment(ticket.id, file)));
+      await refreshTicketFromBackend(ticket.id);
+      const failedUploads = uploadResults.filter((result) => result.status === 'rejected').length;
+      toast({ kind: failedUploads ? 'err' : 'ok', title: failedUploads ? `Đã tạo ${ticket.code}, nhưng tải lên ${failedUploads} tệp thất bại` : `Đã tạo ${ticket.code}`, detail: failedUploads ? 'Bạn vẫn có thể mở ticket và thử lại sau' : (assigneeId ? undefined : 'Cả team đã nhận được thông báo') });
+      celebrate('check', `Đã tạo ${ticket.code}`);
+      navigate(`/ticket/${ticket.id}`);
+    } catch {
+      // The shared API error toast explains why creation failed.
+    }
   }
 
   return (
@@ -170,7 +177,7 @@ export function NewTicketPage() {
           <label htmlFor="t-assignee">Giao cho</label>
           <select id="t-assignee" className="select" value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
             <option value="">Chưa giao, để ai đó tự nhận</option>
-            {TEAM.map((p) => (
+            {teamMembers().map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
                 {p.id === me.id ? ' (tôi)' : ''} · {p.title}
@@ -181,7 +188,7 @@ export function NewTicketPage() {
 
         <div className="field">
           <span className="label">Ảnh chụp màn hình, file log</span>
-          <FileDrop onChange={setAttachments} />
+          <FileDrop onChange={setFiles} />
         </div>
 
         <div className="form-actions">

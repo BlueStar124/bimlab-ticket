@@ -1,11 +1,12 @@
 // Team channel: one conversation for the whole IT team, with replies, @mentions and ticket links.
 import { useEffect, useMemo, useState } from 'react';
-import { markChatRead, sendMessage } from '@/data/chatActions';
+import { markChatRead } from '@/data/chatActions';
+import { sendChatMessage } from '@/data/ticketApi';
 import { useCurrentUser } from '@/data/session';
-import { useStore } from '@/data/store';
+import { getState, setState, useStore } from '@/data/store';
 import type { ChatMessage } from '@/domain/chat';
 import { MAX_MESSAGE_LENGTH } from '@/domain/chat';
-import { TEAM, personById } from '@/domain/people';
+import { teamMembers, personById } from '@/data/people';
 import { formatDateTime } from '@/domain/ticket';
 import { MessageText } from '@/features/chat/MessageText';
 import { Avatar } from '@/features/tickets/components/TicketBits';
@@ -93,11 +94,13 @@ export function ChatPage() {
     });
   }, [messages, me.id, byId, ticketIdByCode]);
 
-  const mentionables = useMemo(() => TEAM.filter((p) => p.id !== me.id).map((p) => ({ id: p.id, name: p.name, detail: p.title })), [me.id]);
+  const mentionables = useMemo(() => teamMembers().filter((p) => p.id !== me.id).map((p) => ({ id: p.id, name: p.name, detail: p.title })), [me.id]);
 
-  function send(text: string) {
+  async function send(text: string) {
     try {
-      sendMessage(text, me.id, replyToId);
+      const message = await sendChatMessage(text, replyToId);
+      const state = getState();
+      setState({ ...state, messages: [...state.messages, message], chatReadAt: { ...state.chatReadAt, [me.id]: message.at } });
       setReplyToId(null);
     } catch (e) {
       toast({ kind: 'err', title: 'Chưa gửi được tin nhắn', detail: (e as Error).message });
@@ -113,7 +116,7 @@ export function ChatPage() {
           </i>
           <span>
             <h1 className="chat-title">Kênh chung team IT</h1>
-            <small className="chat-sub">{TEAM.length} thành viên · gõ @ để nhắc tên, dán mã BLT-… để dẫn tới ticket</small>
+            <small className="chat-sub">{teamMembers().length} thành viên · gõ @ để nhắc tên, dán mã BLT-… để dẫn tới ticket</small>
           </span>
         </div>
         {items.length ? (

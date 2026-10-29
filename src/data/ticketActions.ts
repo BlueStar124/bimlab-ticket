@@ -1,10 +1,20 @@
 // Ticket writes: create, status changes, assignment, priority, comments.
 // Every IT-team member may do every action; the checks here reject unknown people and invalid moves.
-import { getState, newId, setState } from '@/data/store';
+import { getState, newId, refreshTicketFromBackend, setState } from '@/data/store';
 import { areaById } from '@/domain/areas';
-import { isMember, personById } from '@/domain/people';
+import { isMember, personById } from '@/data/people';
 import type { Attachment, Environment, Priority, Ticket, TicketEvent, TicketStatus } from '@/domain/ticket';
 import { PRIORITY_LABEL, canTransition, nextTicketCode, withStatus } from '@/domain/ticket';
+import { addTicketComment, updateTicketAssignee, updateTicketPriority, updateTicketStatus } from '@/data/ticketApi';
+
+// The optimistic change is replaced by the server's copy of this ticket, whether the write succeeded or not;
+// a failed write is already reported by the API error toast.
+function syncRemote(id: string, action: Promise<unknown>) {
+  void action
+    .catch(() => undefined)
+    .then(() => refreshTicketFromBackend(id))
+    .catch(() => undefined);
+}
 
 function event(ticketId: string, actorId: string, kind: TicketEvent['kind'], text: string, extra: Partial<TicketEvent> = {}): TicketEvent {
   return { id: newId('e'), ticketId, at: new Date().toISOString(), actorId, kind, text, ...extra };
@@ -77,6 +87,7 @@ export function changeStatus(id: string, to: TicketStatus, actorId: string) {
   const takes = to === 'in_progress' && !ticket.assigneeId;
   if (takes) events.unshift(event(id, actorId, 'assign', assignText(actorId, actorId), { toAssigneeId: actorId }));
   updateTicket(id, (t) => ({ ...withStatus(t, to, at), assigneeId: takes ? actorId : t.assigneeId }), events);
+  syncRemote(id, updateTicketStatus(id, to));
 }
 
 export function assign(id: string, assigneeId: string | null, actorId: string) {
@@ -86,6 +97,7 @@ export function assign(id: string, assigneeId: string | null, actorId: string) {
   if (ticket.assigneeId === assigneeId) return;
   const at = new Date().toISOString();
   updateTicket(id, (t) => ({ ...t, assigneeId, updatedAt: at }), [event(id, actorId, 'assign', assignText(assigneeId, actorId), { toAssigneeId: assigneeId })]);
+  syncRemote(id, updateTicketAssignee(id, assigneeId));
 }
 
 export function setPriority(id: string, priority: Priority, actorId: string) {
@@ -96,6 +108,7 @@ export function setPriority(id: string, priority: Priority, actorId: string) {
   updateTicket(id, (t) => ({ ...t, priority, updatedAt: at }), [
     event(id, actorId, 'priority', `Đổi ưu tiên sang “${PRIORITY_LABEL[priority].title}”`, { toPriority: priority }),
   ]);
+  syncRemote(id, updateTicketPriority(id, priority));
 }
 
 export function addComment(id: string, text: string, actorId: string) {
@@ -105,4 +118,5 @@ export function addComment(id: string, text: string, actorId: string) {
   if (!body) throw new Error('Nội dung trống');
   const at = new Date().toISOString();
   updateTicket(id, (t) => ({ ...t, updatedAt: at }), [event(id, actorId, 'comment', body)]);
+  syncRemote(id, addTicketComment(id, body));
 }

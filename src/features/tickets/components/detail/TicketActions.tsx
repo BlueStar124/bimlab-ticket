@@ -1,6 +1,6 @@
 // Primary moves on a ticket: take it, start, finish, reopen. Anyone in the team may use them.
 import { assign, changeStatus } from '@/data/ticketActions';
-import { personById } from '@/domain/people';
+import { personById } from '@/data/people';
 import type { Ticket, TicketStatus } from '@/domain/ticket';
 import { STATUS_LABEL, nextStatuses } from '@/domain/ticket';
 import { toast } from '@/shared/lucian/Toaster';

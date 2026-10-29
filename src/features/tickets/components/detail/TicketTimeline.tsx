@@ -1,5 +1,5 @@
 // Comments and activity log, followed by the comment box.
-import { personById } from '@/domain/people';
+import { personById } from '@/data/people';
 import type { Ticket, TicketEvent } from '@/domain/ticket';
 import { STATUS_LABEL, formatDateTime, formatRelative } from '@/domain/ticket';
 import { Composer } from '@/features/tickets/components/detail/Composer';

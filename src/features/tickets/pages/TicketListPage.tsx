@@ -4,7 +4,7 @@ import { useCurrentUser } from '@/data/session';
 import { useStore } from '@/data/store';
 import type { TicketKind } from '@/domain/areas';
 import { KIND_LABEL, areaById, areasOf } from '@/domain/areas';
-import { personById } from '@/domain/people';
+import { personById } from '@/data/people';
 import type { Priority, Ticket } from '@/domain/ticket';
 import { PRIORITY_LABEL, PRIORITY_ORDER, compareForQueue, isOpen } from '@/domain/ticket';
 import { TicketTable } from '@/features/tickets/components/TicketTable';

@@ -1,20 +1,18 @@
-// Top navigation: brand, menu, demo account switch, notifications, theme, account.
+// Top navigation: brand, menu, notifications, theme, signed-in account and sign-out.
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BrandMark } from '@/app/BrandMark';
 import { preloadRoute } from '@/app/routes';
 import { markRead } from '@/data/notifications';
-import { setCurrentUser } from '@/data/session';
+import { logout } from '@/data/session';
 import { useStore } from '@/data/store';
 import { dropBim } from '@/features/bim/bimPrefs';
 import { unreadCount } from '@/domain/chat';
-import { TEAM } from '@/domain/people';
 import type { Person } from '@/domain/ticket';
 import { useBellItems } from '@/features/notifications/useBellItems';
 import { Avatar } from '@/features/tickets/components/TicketBits';
 import { NotificationBell } from '@/shared/lucian/NotificationBell';
 import { ThemeToggle } from '@/shared/lucian/ThemeToggle';
-import { toast } from '@/shared/lucian/Toaster';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 
 const NAV: Array<{ to: string; label: string; icon: IconName; end?: boolean }> = [
@@ -22,18 +20,15 @@ const NAV: Array<{ to: string; label: string; icon: IconName; end?: boolean }> =
   { to: '/ticket', label: 'Danh sách', icon: 'list' },
   { to: '/kanban', label: 'Kanban', icon: 'board' },
   { to: '/tin-nhan', label: 'Tin nhắn', icon: 'chat' },
+  { to: '/bang-link', label: 'Bảng link', icon: 'link' },
   { to: '/bao-loi', label: 'Báo lỗi', icon: 'plus' },
 ];
 
-function UserSwitch({ me, onSwitch }: { me: Person; onSwitch: (id: string) => void }) {
+function SignOutButton({ className }: { className: string }) {
   return (
-    <select className="select user-switch" value={me.id} onChange={(e) => onSwitch(e.target.value)} aria-label="Đăng nhập demo với tư cách">
-      {TEAM.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+    <button type="button" className={className} onClick={() => void logout()} aria-label="Đăng xuất" title="Đăng xuất">
+      <Icon name="logout" size={20} />
+    </button>
   );
 }
 
@@ -44,12 +39,6 @@ export function AppBar({ me }: { me: Person }) {
   const unreadChat = useStore((s) => unreadCount(s.messages, me.id, s.chatReadAt[me.id]));
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => setMenuOpen(false), [location.pathname]);
-
-  function switchUser(id: string) {
-    if (id === me.id) return;
-    setCurrentUser(id);
-    toast({ kind: 'info', title: 'Đã đổi người dùng demo', detail: 'Chưa kết nối đăng nhập thật' });
-  }
 
   return (
     <header className="appbar">
@@ -82,27 +71,23 @@ export function AppBar({ me }: { me: Person }) {
             </NavLink>
           ))}
           <div className="topnav-role">
-            <span>Người dùng demo</span>
-            <UserSwitch me={me} onSwitch={switchUser} />
+            <span>
+              Đăng nhập: <b>{me.name}</b>
+            </span>
+            <SignOutButton className="btn btn-ghost btn-sm" />
           </div>
         </nav>
 
         <div className="appbar-tools">
-          <div className="appbar-role">
-            <UserSwitch me={me} onSwitch={switchUser} />
-          </div>
           <NotificationBell
             items={items}
             onOpenItem={(id) => {
-              markRead(me.id, [id]);
+              markRead([id]);
               const href = hrefOf.get(id);
               if (href) navigate(href);
             }}
             onMarkAllRead={() =>
-              markRead(
-                me.id,
-                items.map((i) => i.id),
-              )
+markRead(items.map((i) => i.id))
             }
           />
           <ThemeToggle />
@@ -113,6 +98,7 @@ export function AppBar({ me }: { me: Person }) {
               <small>{me.title}</small>
             </span>
           </span>
+          <SignOutButton className="icon-btn appbar-signout" />
           <button
             type="button"
             className="icon-btn menu-btn"

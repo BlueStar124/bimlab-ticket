@@ -16,6 +16,7 @@ const LOADERS = {
   ticketDetail: page(() => import('@/features/tickets/pages/TicketDetailPage'), 'TicketDetailPage'),
   board: page(() => import('@/features/board/BoardPage'), 'BoardPage'),
   chat: page(() => import('@/features/chat/ChatPage'), 'ChatPage'),
+  links: page(() => import('@/features/links/LinksPage'), 'LinksPage'),
 } satisfies Record<string, Loader>;
 
 type PageKey = keyof typeof LOADERS;
@@ -29,6 +30,7 @@ const PATH_TO_PAGE: Record<string, PageKey> = {
   '/ticket': 'ticketList',
   '/kanban': 'board',
   '/tin-nhan': 'chat',
+  '/bang-link': 'links',
 };
 
 /** Start downloading a page's chunk ahead of navigation. Safe to call repeatedly (imports are cached). */
@@ -71,6 +73,8 @@ export function AppRoutes() {
         <Route path="/ticket/:id" element={<P.ticketDetail />} />
         <Route path="/kanban" element={<P.board />} />
         <Route path="/tin-nhan" element={<P.chat />} />
+        <Route path="/bang-link" element={<P.links />} />
+        <Route path="/ghi-chu" element={<Navigate to="/bang-link" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

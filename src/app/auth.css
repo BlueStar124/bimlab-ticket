@@ -1,0 +1,336 @@
+/* Sign-in and first-password screens. A navy blueprint background (isometric lattice + the BIMLab floor slabs)
+   with one large card: the app showcase on the left, the form on the right. Narrow screens keep only the form. */
+:root {
+  --auth-bg: #0f3d63;
+  --auth-bg-deep: #0a2c49;
+  --auth-glow: rgba(127, 178, 222, 0.3);
+  --auth-floor: rgba(255, 255, 255, 0.16);
+  --auth-show-bg: #154d7c;
+  --auth-show-ink: #ffffff;
+  --auth-show-ink-2: rgba(255, 255, 255, 0.76);
+  --auth-show-chip: rgba(255, 255, 255, 0.12);
+  --auth-sticky-1: #fff1a8;
+  --auth-sticky-2: #e4dbff;
+  --auth-sticky-3: #cdf2dc;
+  --auth-sticky-ink: #29271f;
+  --auth-shadow: rgba(4, 20, 36, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --auth-bg: #0b1828;
+    --auth-bg-deep: #050c16;
+    --auth-glow: rgba(127, 178, 222, 0.18);
+    --auth-floor: rgba(255, 255, 255, 0.1);
+    --auth-show-bg: #123a5c;
+    --auth-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme='dark'] {
+  --auth-bg: #0b1828;
+  --auth-bg-deep: #050c16;
+  --auth-glow: rgba(127, 178, 222, 0.18);
+  --auth-floor: rgba(255, 255, 255, 0.1);
+  --auth-show-bg: #123a5c;
+  --auth-shadow: rgba(0, 0, 0, 0.6);
+}
+
+.auth-screen {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 40px 16px;
+  overflow: hidden;
+  background-color: var(--auth-bg);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 15% 0%, var(--auth-glow), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 100% 100%, var(--auth-bg-deep), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='32'%3E%3Cpath d='M0 16L28 0L56 16L28 32Z' fill='none' stroke='white' stroke-opacity='0.07'/%3E%3C/svg%3E");
+  background-size: auto, auto, 56px 32px;
+}
+.auth-floors {
+  position: absolute;
+  right: -30px;
+  bottom: -40px;
+  width: min(440px, 60vw);
+  fill: none;
+  stroke: var(--auth-floor);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.auth-shell {
+  position: relative;
+  width: min(1060px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ux-surface);
+  box-shadow: 0 30px 80px -24px var(--auth-shadow), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Showcase */
+.auth-showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 44px 40px 0;
+  overflow: hidden;
+  color: var(--auth-show-ink);
+  background-color: var(--auth-show-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='32'%3E%3Cpath d='M0 16L28 0L56 16L28 32Z' fill='none' stroke='white' stroke-opacity='0.06'/%3E%3C/svg%3E");
+  background-size: 56px 32px;
+}
+.auth-showcase h2 {
+  margin: 0;
+  max-width: 20ch;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: var(--auth-show-ink);
+}
+.auth-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.auth-features li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.auth-feature-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--auth-show-chip);
+  color: var(--auth-show-ink);
+}
+.auth-features b {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--auth-show-ink);
+}
+/* A corner of the link board, so the first screen already says what the app is for. */
+.auth-scene {
+  position: relative;
+  height: 215px;
+  margin-top: auto;
+}
+.auth-sticky {
+  position: absolute;
+  width: 168px;
+  display: grid;
+  gap: 3px;
+  padding: 12px 12px 14px;
+  border-radius: 3px 3px 10px 3px;
+  color: var(--auth-sticky-ink);
+  box-shadow: 0 10px 22px -10px var(--auth-shadow);
+}
+.auth-sticky b {
+  font-size: 14px;
+  line-height: 1.3;
+}
+.auth-sticky i {
+  font: 15px/1.25 var(--font-hand, 'Pangolin', cursive);
+}
+.auth-sticky.s1 {
+  left: 0;
+  top: 46px;
+  background: var(--auth-sticky-1);
+  transform: rotate(-5deg);
+}
+.auth-sticky.s2 {
+  left: 128px;
+  top: 6px;
+  background: var(--auth-sticky-2);
+  transform: rotate(3deg);
+}
+.auth-sticky.s3 {
+  left: 262px;
+  top: 84px;
+  background: var(--auth-sticky-3);
+  transform: rotate(-2deg);
+}
+.auth-bim {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+}
+
+/* Form panel */
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 52px 52px 44px;
+  background: var(--ux-surface);
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  font-size: 13.5px;
+  color: var(--ux-ink-3);
+}
+.auth-brand img {
+  height: 30px;
+  width: auto;
+}
+.auth-brand span {
+  padding-left: 10px;
+  border-left: 1px solid var(--ux-line);
+}
+.auth-panel h1 {
+  margin: 0 0 28px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ux-ink);
+}
+.auth-lead {
+  margin: -20px 0 26px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ux-ink-3);
+}
+.auth-panel .field {
+  margin-bottom: 18px;
+}
+.auth-panel .field label {
+  font-size: 13px;
+}
+.auth-panel .input {
+  min-height: 48px;
+  padding: 12px 14px;
+  font-size: 15px;
+}
+.auth-password {
+  position: relative;
+}
+.auth-password .input {
+  padding-right: 48px;
+}
+.auth-password button {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ux-ink-3);
+  cursor: pointer;
+}
+.auth-password button:hover {
+  background: var(--ux-surface-2);
+  color: var(--ux-ink);
+}
+.auth-submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 6px;
+  justify-content: center;
+  font-size: 15px;
+}
+.auth-error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--ux-danger);
+  background: color-mix(in srgb, var(--ux-danger) 10%, transparent);
+}
+.auth-error svg {
+  flex: none;
+  margin-top: 1px;
+}
+.auth-foot {
+  margin: 22px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ux-ink-3);
+}
+.auth-foot button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--ux-accent);
+  font: inherit;
+  cursor: pointer;
+}
+.auth-foot button:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+  .auth-showcase {
+    padding: 28px 28px 26px;
+    gap: 8px;
+  }
+  .auth-showcase h2 {
+    font-size: 22px;
+  }
+  .auth-features,
+  .auth-scene {
+    display: none;
+  }
+  .auth-panel {
+    padding: 32px 28px 30px;
+  }
+  .auth-brand {
+    margin-bottom: 22px;
+  }
+}
+@media (max-width: 480px) {
+  .auth-screen {
+    padding: 20px 16px;
+    place-items: start center;
+  }
+  .auth-shell {
+    border-radius: 16px;
+  }
+  .auth-showcase {
+    padding: 22px 20px;
+  }
+  .auth-panel {
+    padding: 26px 20px 24px;
+  }
+  .auth-panel h1 {
+    font-size: 26px;
+  }
+}
+
+/* Same dark-theme treatment as the logo in the top bar (layout.css), so "Lab" stays readable. */
+:root[data-theme='dark'] .auth-brand img {
+  filter: invert(1) hue-rotate(180deg) brightness(1.1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .auth-brand img {
+    filter: invert(1) hue-rotate(180deg) brightness(1.1);
+  }
+}

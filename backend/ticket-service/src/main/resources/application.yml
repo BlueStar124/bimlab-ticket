@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: ticket-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bimlab_ticket?currentSchema=ticket}
+    username: ${SPRING_DATASOURCE_USERNAME:bimlab_ticket}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:ticket}
+  flyway:
+    enabled: true
+    schemas: ${DB_SCHEMA:ticket}
+    default-schema: ${DB_SCHEMA:ticket}
+  servlet:
+    multipart:
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:12MB}
+app:
+  team:
+    # username|Họ tên|Chức danh, phân cách bằng ";". Chỉ những username này đăng nhập và được giao việc.
+    members: ${APP_TEAM_MEMBERS:it-nam|Nguyễn Hải Nam|Trưởng nhóm IT;it-duc|Đỗ Minh Đức|Backend developer;it-huy|Trần Quang Huy|Frontend developer;it-trang|Lê Thu Trang|Tester;it-bao|Phạm Gia Bảo|DevOps;it-hanh|Vũ Mỹ Hạnh|Quản trị hệ thống}
+  auth:
+    # Mật khẩu tạm cho lần đăng nhập đầu của thành viên chưa có tài khoản; để trống thì không ai đăng nhập lần đầu được.
+    initial-password: ${APP_AUTH_INITIAL_PASSWORD:}
+    session-ttl: ${APP_AUTH_SESSION_TTL:12h}
+    cookie-secure: ${APP_AUTH_COOKIE_SECURE:false}
+  attachments:
+    max-file-bytes: ${APP_ATTACHMENT_MAX_FILE_BYTES:10485760}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5180}
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:}
+    secret-key: ${MINIO_SECRET_KEY:}
+    bucket: ${MINIO_BUCKET:bimlab-ticket-files}
+server:
+  port: ${SERVER_PORT:8086}
+  shutdown: graceful
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

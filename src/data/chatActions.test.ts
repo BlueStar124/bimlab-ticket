@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { markChatRead, sendMessage } from '@/data/chatActions';
-import { getState, resetDemoData } from '@/data/store';
+import { setTeam } from '@/data/people';
+import { getState, resetStore } from '@/data/store';
 import { MAX_MESSAGE_LENGTH } from '@/domain/chat';
 
+const TEAM = ['nam', 'duc', 'huy', 'trang', 'bao', 'hanh'].map((n) => ({ id: 'it-' + n, name: n, title: '' }));
+
 describe('chatActions', () => {
-  beforeEach(() => resetDemoData());
+  beforeEach(() => {
+    resetStore();
+    setTeam(TEAM);
+  });
 
   it('appends a trimmed message and marks it read for its author', () => {
     const m = sendMessage('  Ai rảnh xem BLT-2610-0001 không?  ', 'it-huy', null);

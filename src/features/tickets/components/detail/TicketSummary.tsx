@@ -28,9 +28,9 @@ export function TicketSummary({ ticket }: { ticket: Ticket }) {
       {ticket.attachments.length > 0 && (
         <div className="files" aria-label="File đính kèm">
           {ticket.attachments.map((a) => (
-            <span key={a.name} className="file">
+            <a key={a.id ?? a.name} className="file" href={a.id ? `/api/tickets/${ticket.id}/attachments/${a.id}` : undefined}>
               <Icon name="paperclip" size={14} /> {a.name}
-            </span>
+            </a>
           ))}
         </div>
       )}

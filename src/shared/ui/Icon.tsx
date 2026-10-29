@@ -1,17 +1,27 @@
 // Heroicons v2 (outline) through react-icons — the same icon family BIMLab HRM uses.
 import type { IconType } from 'react-icons';
 import {
+  HiBookmark,
+  HiHeart,
   HiOutlineArrowLeft,
   HiOutlineArrowPath,
+  HiOutlineArrowRightStartOnRectangle,
   HiOutlineBars3,
   HiOutlineBugAnt,
   HiOutlineChartBar,
   HiOutlineChatBubbleLeftEllipsis,
+  HiOutlineBookmark,
   HiOutlineCheck,
   HiOutlineCheckCircle,
+  HiOutlineClipboardDocument,
   HiOutlineExclamationTriangle,
+  HiOutlineEye,
+  HiOutlineEyeSlash,
+  HiOutlineHeart,
   HiOutlineInboxStack,
+  HiOutlineLink,
   HiOutlineListBullet,
+  HiOutlineLockClosed,
   HiOutlineMagnifyingGlass,
   HiOutlinePaperAirplane,
   HiOutlinePaperClip,
@@ -46,6 +56,17 @@ const ICONS = {
   chat: HiOutlineChatBubbleLeftEllipsis,
   menu: HiOutlineBars3,
   close: HiOutlineXMark,
+  logout: HiOutlineArrowRightStartOnRectangle,
+  lock: HiOutlineLockClosed,
+  eye: HiOutlineEye,
+  eyeOff: HiOutlineEyeSlash,
+  // link board
+  link: HiOutlineLink,
+  heart: HiOutlineHeart,
+  heartFilled: HiHeart,
+  bookmark: HiOutlineBookmark,
+  bookmarkFilled: HiBookmark,
+  copy: HiOutlineClipboardDocument,
 } satisfies Record<string, IconType>;
 
 export type IconName = keyof typeof ICONS;

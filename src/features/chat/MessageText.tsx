@@ -1,12 +1,12 @@
 // Message body with @mentions highlighted and ticket codes linked to their ticket.
 import { Link } from 'react-router-dom';
 import { segmentMessage } from '@/domain/chat';
-import { TEAM } from '@/domain/people';
+import { teamMembers } from '@/data/people';
 
 export function MessageText({ text, meId, ticketIdByCode }: { text: string; meId: string; ticketIdByCode: Map<string, string> }) {
   return (
     <>
-      {segmentMessage(text, TEAM).map((s, i) => {
+      {segmentMessage(text, teamMembers()).map((s, i) => {
         if (s.kind === 'mention') {
           return (
             <span key={i} className={`chat-at${s.personId === meId ? ' is-me' : ''}`}>

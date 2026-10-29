@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/data/session';
 import { useStore } from '@/data/store';
 import { AREAS } from '@/domain/areas';
-import { TEAM } from '@/domain/people';
+import { teamMembers } from '@/data/people';
 import { compareForQueue, isOpen } from '@/domain/ticket';
 import { KpiCard } from '@/features/dashboard/KpiCard';
 import { Avatar } from '@/features/tickets/components/TicketBits';
@@ -34,7 +34,7 @@ export function DashboardPage() {
       byArea: AREAS.map((a) => ({ a, n: open.filter((t) => t.areaId === a.id).length }))
         .filter((x) => x.n > 0)
         .sort((x, y) => y.n - x.n),
-      byPerson: TEAM.map((p) => ({ p, n: open.filter((t) => t.assigneeId === p.id).length })).sort((x, y) => y.n - x.n),
+      byPerson: teamMembers().map((p) => ({ p, n: open.filter((t) => t.assigneeId === p.id).length })).sort((x, y) => y.n - x.n),
     };
   }, [tickets, now, me.id]);
 

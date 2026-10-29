@@ -1,0 +1,562 @@
+/* Link board: sticky notes on a dotted board. Note colours encode the kind of link (see the legend);
+   everything else uses the app tokens. */
+:root {
+  --note-ink: #29271f;
+  --note-ink-2: #5b574a;
+  --note-shade: rgba(30, 35, 45, 0.14);
+  --note-pin: #d63c3c;
+  --note-resource: #fff1a8;
+  --note-repository: #cdf2dc;
+  --note-prompt: #e4dbff;
+  --note-tool: #d4e8ff;
+  --note-design: #ffd9e4;
+  --note-video: #ffe0c2;
+  --note-general: #ececec;
+  --font-hand: 'Pangolin', 'Segoe Print', 'Comic Sans MS', cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --note-ink: #f2efe4;
+    --note-ink-2: #c9c4b3;
+    --note-shade: rgba(0, 0, 0, 0.45);
+    --note-pin: #ff7a7a;
+    --note-resource: #4a4222;
+    --note-repository: #1d4331;
+    --note-prompt: #342b52;
+    --note-tool: #1c3854;
+    --note-design: #4e2735;
+    --note-video: #4d321d;
+    --note-general: #333a44;
+  }
+}
+:root[data-theme='dark'] {
+  --note-ink: #f2efe4;
+  --note-ink-2: #c9c4b3;
+  --note-shade: rgba(0, 0, 0, 0.45);
+  --note-pin: #ff7a7a;
+  --note-resource: #4a4222;
+  --note-repository: #1d4331;
+  --note-prompt: #342b52;
+  --note-tool: #1c3854;
+  --note-design: #4e2735;
+  --note-video: #4d321d;
+  --note-general: #333a44;
+}
+
+.links-page {
+  display: grid;
+  gap: 20px;
+}
+.links-page .page-head {
+  margin-bottom: 0;
+}
+.links-page .page-head p {
+  max-width: 70ch;
+}
+
+/* Capture: the one big control on the page */
+.link-capture {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ux-line);
+  border-radius: 12px;
+  background: var(--ux-surface);
+  scroll-margin-top: 80px;
+}
+.link-capture-row {
+  display: flex;
+  gap: 10px;
+}
+.link-capture-input {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.link-capture-input svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ux-ink-3);
+}
+.link-capture-input .input {
+  min-height: 48px;
+  padding-left: 42px;
+  border-style: dashed;
+  background: var(--ux-page);
+  font-size: 15px;
+}
+.link-capture-input .input:focus {
+  border-style: solid;
+  background: var(--ux-surface);
+}
+.link-capture-row .btn {
+  min-height: 48px;
+  padding: 0 20px;
+}
+.link-capture-alt {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ux-ink-3);
+}
+.link-capture-alt button {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: var(--ux-accent);
+  cursor: pointer;
+}
+.link-capture-alt button:hover {
+  text-decoration: underline;
+}
+
+.link-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ux-line);
+}
+.link-composer-preview {
+  padding-top: 8px;
+}
+.link-composer-form {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+.link-composer-form .field {
+  margin-bottom: 12px;
+}
+.link-hand-input {
+  min-height: 72px;
+  font-family: var(--font-hand);
+  font-size: 17px;
+  line-height: 1.35;
+}
+.link-checking {
+  font-weight: 500;
+  color: var(--ux-ink-3);
+}
+.link-hint {
+  margin: -4px 0 12px;
+  font-size: 12px;
+  color: var(--ux-ink-3);
+}
+.link-composer-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.link-dup {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--ux-danger);
+  background: color-mix(in srgb, var(--ux-danger) 10%, transparent);
+}
+.link-dup svg {
+  flex: none;
+  margin-top: 1px;
+}
+.link-dup-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* Hot this week: a real ranking, so the numbers carry meaning */
+.link-hot h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ux-ink);
+}
+.link-hot h2 small {
+  margin-left: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ux-ink-3);
+}
+.link-hot ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.link-hot li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--ux-line);
+  border-radius: 12px;
+  background: var(--ux-surface);
+}
+.link-hot-rank {
+  width: 22px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ux-accent);
+  font-variant-numeric: tabular-nums;
+}
+.link-hot-text {
+  flex: 1;
+  min-width: 0;
+}
+.link-hot-text a,
+.link-hot-text button {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ux-ink);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.link-hot-text a:hover,
+.link-hot-text button:hover {
+  text-decoration: underline;
+}
+.link-hot-text small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--ux-ink-3);
+}
+.link-hot-likes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--note-pin);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Board */
+.link-board-section {
+  display: grid;
+  gap: 10px;
+}
+.link-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.link-search {
+  flex: 0 1 280px;
+  margin-left: auto;
+  min-width: 0;
+}
+.link-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ux-ink-3);
+}
+.link-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.link-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--note-shade);
+  background: var(--note-tool);
+}
+.link-board {
+  display: grid;
+  gap: 12px;
+  padding: 18px 14px 6px;
+  border: 1px solid var(--ux-line);
+  border-radius: 14px;
+  background-color: var(--ux-surface);
+  background-image: radial-gradient(var(--ux-line) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+.link-group {
+  margin: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ux-ink-3);
+}
+.link-notes {
+  columns: 250px;
+  column-gap: 16px;
+}
+/* Each note stays whole in one column; the top padding (not a margin, which is dropped at a column break)
+   leaves room for the pin head so it never shows up at the bottom of the previous column. */
+.link-slot {
+  break-inside: avoid;
+  padding-top: 10px;
+  margin-bottom: 14px;
+}
+.link-slot.is-flash .link-note {
+  animation: link-flash 1.2s ease-out 2;
+}
+@keyframes link-flash {
+  50% {
+    box-shadow: 0 0 0 4px var(--ux-accent), 0 14px 26px -12px var(--note-shade);
+  }
+}
+
+/* The sticky note */
+.link-note {
+  --tilt: 0deg;
+  position: relative;
+  display: grid;
+  gap: 7px;
+  padding: 16px 14px 12px;
+  border-radius: 3px 3px 10px 3px;
+  color: var(--note-ink);
+  background: var(--note-tool);
+  box-shadow: 0 1px 1px var(--note-shade), 0 8px 18px -10px var(--note-shade);
+  transform: rotate(var(--tilt));
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+.link-note:hover,
+.link-note:focus-within {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow: 0 1px 1px var(--note-shade), 0 14px 26px -12px var(--note-shade);
+}
+.link-note.t-resource,
+.link-legend i.t-resource {
+  background: var(--note-resource);
+}
+.link-note.t-repository,
+.link-legend i.t-repository {
+  background: var(--note-repository);
+}
+.link-note.t-prompt,
+.link-legend i.t-prompt {
+  background: var(--note-prompt);
+}
+.link-note.t-tool,
+.link-legend i.t-tool {
+  background: var(--note-tool);
+}
+.link-note.t-design,
+.link-legend i.t-design {
+  background: var(--note-design);
+}
+.link-note.t-video,
+.link-legend i.t-video {
+  background: var(--note-video);
+}
+.link-note.t-general,
+.link-legend i.t-general {
+  background: var(--note-general);
+}
+.link-note.is-pinned::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: var(--note-pin);
+  box-shadow: 0 2px 3px var(--note-shade);
+}
+.link-note-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--note-ink-2);
+}
+.link-note-kind {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.link-note-icon {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--note-ink-2);
+  cursor: pointer;
+}
+.link-note-icon:hover {
+  background: var(--note-shade);
+  color: var(--note-ink);
+}
+.link-note-icon[aria-pressed='true'] {
+  color: var(--note-pin);
+}
+.link-note-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--note-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+a.link-note-title:hover {
+  text-decoration: underline;
+}
+.link-note-domain {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--note-ink-2);
+}
+.link-note-domain b {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 10px;
+  background: var(--note-ink);
+  color: var(--note-resource);
+}
+.link-note-domain span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.link-note-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--note-ink-2);
+  overflow-wrap: anywhere;
+}
+.link-note-hand {
+  margin: 2px 0 0;
+  font: 17px/1.3 var(--font-hand);
+  color: var(--note-ink);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.link-note-prompt {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--note-shade);
+}
+.link-note-prompt pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  font: 12.5px/1.45 var(--font-sans, inherit);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--note-ink);
+}
+.link-note-prompt .btn {
+  justify-self: end;
+}
+.link-note-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 12px;
+  color: var(--note-ink-2);
+}
+.link-note-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--note-shade);
+  font-size: 12px;
+  color: var(--note-ink-2);
+}
+.link-note-who {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.link-like {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--note-shade);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--note-ink);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.link-like:hover {
+  background: var(--note-shade);
+}
+.link-like[aria-pressed='true'] {
+  color: var(--note-pin);
+  border-color: currentColor;
+}
+
+@media (max-width: 860px) {
+  .link-hot ol,
+  .link-composer {
+    grid-template-columns: 1fr;
+  }
+  .link-search {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+}
+@media (max-width: 480px) {
+  .link-capture-row {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .link-note,
+  .link-note:hover,
+  .link-note:focus-within {
+    transform: none;
+    transition: none;
+  }
+  .link-slot.is-flash .link-note {
+    animation: none;
+    outline: 3px solid var(--ux-accent);
+  }
+}

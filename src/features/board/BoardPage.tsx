@@ -3,7 +3,7 @@ import { useCurrentUser } from '@/data/session';
 import { useStore } from '@/data/store';
 import { changeStatus } from '@/data/ticketActions';
 import { areaById } from '@/domain/areas';
-import { personById } from '@/domain/people';
+import { personById } from '@/data/people';
 import type { Ticket, TicketStatus } from '@/domain/ticket';
 import { PRIORITY_LABEL, STATUS_LABEL, STATUS_ORDER, canTransition, compareForQueue, formatRelativeShort } from '@/domain/ticket';
 import { Avatar, PRIORITY_COLOR, STATUS_COLOR } from '@/features/tickets/components/TicketBits';

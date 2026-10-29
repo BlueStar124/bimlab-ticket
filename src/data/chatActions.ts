@@ -2,7 +2,8 @@
 import { getState, newId, setState } from '@/data/store';
 import type { ChatMessage } from '@/domain/chat';
 import { MAX_MESSAGE_LENGTH } from '@/domain/chat';
-import { isMember } from '@/domain/people';
+import { isMember } from '@/data/people';
+import { updateChatReadMarker } from '@/data/ticketApi';
 
 export function sendMessage(text: string, authorId: string, replyToId: string | null): ChatMessage {
   if (!isMember(authorId)) throw new Error('Chỉ thành viên team IT mới nhắn được trong kênh');
@@ -22,4 +23,5 @@ export function markChatRead(personId: string, at: string) {
   const current = s.chatReadAt[personId];
   if (current && current >= at) return;
   setState({ ...s, chatReadAt: { ...s.chatReadAt, [personId]: at } });
+  void updateChatReadMarker(at).catch(() => undefined);
 }

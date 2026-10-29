@@ -2,7 +2,8 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { areaById } from '@/domain/areas';
-import { personById, shortName } from '@/domain/people';
+import { personById } from '@/data/people';
+import { shortName } from '@/domain/people';
 import type { Ticket } from '@/domain/ticket';
 import { ENVIRONMENT_LABEL, PRIORITY_LABEL, STATUS_LABEL, formatDateTime, formatRelativeShort } from '@/domain/ticket';
 import { Icon } from '@/shared/ui/Icon';

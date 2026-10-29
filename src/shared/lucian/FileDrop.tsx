@@ -1,15 +1,13 @@
 /* Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032 */
-// Drag-and-drop attachments. There is no file server yet, so the progress bar reflects local
-// processing and only file name + size are stored on the ticket.
+// Drag-and-drop attachments. The progress bar reflects local selection; the parent uploads files.
 // Adapted: every row has a remove button (cancels an upload in progress, or drops an attached file)
 // and leaves with the element's own .out motion; failed rows are dismissed the same way.
 import { useEffect, useRef } from 'react';
-import type { Attachment } from '@/domain/ticket';
 import './lucian-032.css';
 
 const TYPE: Record<string, string> = { pdf: 'var(--ux-danger)', png: 'var(--ux-accent-2)', jpg: 'var(--ux-accent-2)', jpeg: 'var(--ux-accent-2)', rvt: 'var(--ux-accent)', dwg: 'var(--ux-accent)' };
 const MAX_FILES = 5;
-const MAX_BYTES = 25 * 1048576;
+const MAX_BYTES = 10 * 1048576;
 const OUT_MS = 350;
 
 const CHECK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l3 3 6-6.4"/></svg>';
@@ -19,7 +17,7 @@ function size(b: number) {
   return b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
 }
 
-export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void }) {
+export function FileDrop({ onChange }: { onChange: (files: File[]) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -37,7 +35,7 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
     const on = { signal: listeners.signal };
     // Rows that hold (or are about to hold) an attachment, in list order; failed rows are not here.
     const pending = new Set<HTMLLIElement>();
-    const attached = new Map<HTMLLIElement, Attachment>();
+    const attached = new Map<HTMLLIElement, File>();
 
     function publish() {
       const rows = Array.from(list.children) as HTMLLIElement[];
@@ -63,7 +61,9 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
       timers.add(id);
     }
 
-    function run(row: HTMLLIElement, bytes: number, file: Attachment) {
+    function run(row: HTMLLIElement, file: File) {
+      // The progress bar is only visual: the file already counts as attached, so a quick submit keeps it.
+      const bytes = file.size;
       const st = row.querySelector('.u032-st')!;
       const sm = row.querySelector('small')!;
       st.innerHTML = '<span class="u032-spin" aria-hidden="true"></span>';
@@ -81,8 +81,6 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
         row.classList.add('done');
         sm.textContent = `${size(bytes)} · Đã đính kèm`;
         st.innerHTML = CHECK_SVG;
-        attached.set(row, file);
-        publish();
       };
       frames.set(row, requestAnimationFrame(f));
     }
@@ -93,7 +91,8 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
       row.querySelector('.u032-st')!.remove();
     }
 
-    function add(name: string, bytes: number) {
+    function add(file: File) {
+      const { name, size: bytes } = file;
       const ext = (name.split('.').pop() || '').toLowerCase();
       const li = document.createElement('li');
       li.className = 'u032-row';
@@ -104,13 +103,15 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
       del.title = 'Xóa file';
       del.addEventListener('click', () => remove(li));
       list.insertBefore(li, list.firstChild);
-      if (bytes > MAX_BYTES) return fail(li, `${size(bytes)} · Vượt quá 25 MB`);
+      if (bytes > MAX_BYTES) return fail(li, `${size(bytes)} · Vượt quá ${MAX_BYTES / 1048576} MB`);
       if (pending.size >= MAX_FILES) return fail(li, `Tối đa ${MAX_FILES} file · xóa bớt để thêm`);
       pending.add(li);
-      run(li, bytes, { name, size: bytes });
+      attached.set(li, file);
+      publish();
+      run(li, file);
     }
 
-    const addAll = (fl: FileList | null) => Array.from(fl ?? []).forEach((f) => add(f.name, f.size));
+    const addAll = (fl: FileList | null) => Array.from(fl ?? []).forEach(add);
     zone.addEventListener('click', () => pick.click(), on);
     pick.addEventListener('change', () => {
       addAll(pick.files);
@@ -157,7 +158,7 @@ export function FileDrop({ onChange }: { onChange: (files: Attachment[]) => void
         <b>
           Kéo ảnh chụp lỗi vào đây hoặc <em>chọn file</em>
         </b>
-        <small>Ảnh màn hình, PDF, log · tối đa {MAX_FILES} file, 25 MB mỗi file</small>
+        <small>Ảnh màn hình, PDF, log · tối đa {MAX_FILES} file, 10 MB mỗi file</small>
       </button>
       <input className="u032-file" type="file" multiple tabIndex={-1} aria-hidden="true" />
       <ul className="u032-list" aria-live="polite" />
